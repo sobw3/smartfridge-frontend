@@ -1203,76 +1203,6 @@ const AdminDashboard = ({ onLogout }) => {
         );
     };
 
-    const renderContent = () => {
-        if (isLoading && !isSalesLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
-        if (error) return <div className="text-red-400">Erro: {error}</div>;
-
-        switch(activeTab) {
-            case 'condominiums':
-                return <CondoManager />;
-            case 'products':
-                 return <ProductManager />;
-            case 'stock': 
-                return <StockManagement />;
-            case 'finance':
-                return <FinanceReport />;
-            case 'sales':
-                return <SalesPage />;
-            default: return <div>Selecione uma opção</div>;
-        }
-    };
-    
-    const CondoManager = () => (
-        <div>
-            <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold">Gestão de Condomínios</h2><button onClick={() => handleOpenCondoModal()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><PlusCircle size={20} /> Novo Condomínio</button></div>
-            <div className="bg-gray-800 rounded-lg overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-700"><tr><th className="p-4">Nome</th><th className="p-4">Endereço</th><th className="p-4">Síndico</th><th className="p-4">Ações</th></tr></thead><tbody>{condominiums.map(condo => (<tr key={condo.id} className="border-b border-gray-700"><td className="p-4">{condo.name}</td><td className="p-4">{condo.address}</td><td className="p-4">{condo.syndic_name}</td><td className="p-4 flex gap-2"><button onClick={() => handleOpenCondoModal(condo)} className="text-blue-400 hover:text-blue-300 p-2"><Edit size={18}/></button><button onClick={() => handleDeleteCondo(condo.id)} className="text-red-400 hover:text-red-300 p-2"><Trash2 size={18}/></button></td></tr>))}</tbody></table></div>
-        </div>
-    );
-
-    const ProductManager = () => (
-        <div>
-            <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold">Gestão de Produtos</h2><button onClick={() => handleOpenProductModal()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><PlusCircle size={20} /> Novo Produto</button></div>
-            <div className="bg-gray-800 rounded-lg overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-700"><tr><th className="p-4">Produto</th><th className="p-4">Preço de Venda</th><th className="p-4">Preço de Compra</th><th className="p-4">Ações</th></tr></thead><tbody>{products.map(product => (<tr key={product.id} className="border-b border-gray-700"><td className="p-4 flex items-center gap-4"><img src={product.image_url || 'https://placehold.co/100x100/374151/ffffff?text=Sem+Foto'} className="h-12 w-12 rounded-md object-cover" alt={product.name}/><span>{product.name}</span></td><td className="p-4">R$ {parseFloat(product.sale_price).toFixed(2)}</td><td className="p-4">R$ {parseFloat(product.purchase_price).toFixed(2)}</td><td className="p-4 flex gap-2"><button onClick={() => handleOpenProductModal(product)} className="text-blue-400 hover:text-blue-300 p-2"><Edit size={18}/></button><button onClick={() => handleDeleteProduct(product.id)} className="text-red-400 hover:text-red-300 p-2"><Trash2 size={18}/></button></td></tr>))}</tbody></table></div>
-        </div>
-    );
-
-    const FinanceReport = () => (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Gestão de Lucros</h2>
-            </div>
-            <div className="flex flex-col gap-6">
-                {profits.map(report => (
-                    <div key={report.id} className="bg-gray-800 p-6 rounded-lg">
-                        <h3 className="text-xl font-semibold text-orange-400 border-b border-gray-700 pb-3 mb-4">{report.name}</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                                <p className="text-sm text-gray-400">Investimento Inicial</p>
-                                <p className="text-2xl font-bold">R$ {parseFloat(report.initial_investment || 0).toFixed(2).replace('.',',')}</p>
-                            </div>
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                                <p className="text-sm text-gray-400">Faturamento Bruto</p>
-                                <p className="text-2xl font-bold text-green-400">R$ {parseFloat(report.gross_revenue || 0).toFixed(2).replace('.',',')}</p>
-                            </div>
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                                <p className="text-sm text-gray-400">Custo dos Produtos</p>
-                                <p className="text-2xl font-bold text-red-400">R$ {parseFloat(report.cost_of_goods_sold || 0).toFixed(2).replace('.',',')}</p>
-                            </div>
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                                <p className="text-sm text-gray-400">Lucro Líquido</p>
-                                <p className="text-2xl font-bold text-teal-400">R$ {parseFloat(report.net_revenue || 0).toFixed(2).replace('.',',')}</p>
-                            </div>
-                            <div className="bg-gray-700 p-4 rounded-lg">
-                                <p className="text-sm text-gray-400">Comissão Síndico ({report.syndic_profit_percentage}%)</p>
-                                <p className="text-2xl font-bold text-yellow-400">R$ {parseFloat(report.syndic_commission || 0).toFixed(2).replace('.',',')}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
     const SalesPage = () => (
         <div>
             <div className="flex justify-between items-center mb-6">
@@ -1354,6 +1284,76 @@ const AdminDashboard = ({ onLogout }) => {
 
         </div>
     );
+    
+    const CondoManager = () => (
+        <div>
+            <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold">Gestão de Condomínios</h2><button onClick={() => handleOpenCondoModal()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><PlusCircle size={20} /> Novo Condomínio</button></div>
+            <div className="bg-gray-800 rounded-lg overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-700"><tr><th className="p-4">Nome</th><th className="p-4">Endereço</th><th className="p-4">Síndico</th><th className="p-4">Ações</th></tr></thead><tbody>{condominiums.map(condo => (<tr key={condo.id} className="border-b border-gray-700"><td className="p-4">{condo.name}</td><td className="p-4">{condo.address}</td><td className="p-4">{condo.syndic_name}</td><td className="p-4 flex gap-2"><button onClick={() => handleOpenCondoModal(condo)} className="text-blue-400 hover:text-blue-300 p-2"><Edit size={18}/></button><button onClick={() => handleDeleteCondo(condo.id)} className="text-red-400 hover:text-red-300 p-2"><Trash2 size={18}/></button></td></tr>))}</tbody></table></div>
+        </div>
+    );
+
+    const ProductManager = () => (
+        <div>
+            <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold">Gestão de Produtos</h2><button onClick={() => handleOpenProductModal()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><PlusCircle size={20} /> Novo Produto</button></div>
+            <div className="bg-gray-800 rounded-lg overflow-x-auto"><table className="w-full text-left"><thead className="bg-gray-700"><tr><th className="p-4">Produto</th><th className="p-4">Preço de Venda</th><th className="p-4">Preço de Compra</th><th className="p-4">Ações</th></tr></thead><tbody>{products.map(product => (<tr key={product.id} className="border-b border-gray-700"><td className="p-4 flex items-center gap-4"><img src={product.image_url || 'https://placehold.co/100x100/374151/ffffff?text=Sem+Foto'} className="h-12 w-12 rounded-md object-cover" alt={product.name}/><span>{product.name}</span></td><td className="p-4">R$ {parseFloat(product.sale_price).toFixed(2)}</td><td className="p-4">R$ {parseFloat(product.purchase_price).toFixed(2)}</td><td className="p-4 flex gap-2"><button onClick={() => handleOpenProductModal(product)} className="text-blue-400 hover:text-blue-300 p-2"><Edit size={18}/></button><button onClick={() => handleDeleteProduct(product.id)} className="text-red-400 hover:text-red-300 p-2"><Trash2 size={18}/></button></td></tr>))}</tbody></table></div>
+        </div>
+    );
+
+    const FinanceReport = () => (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Gestão de Lucros</h2>
+            </div>
+            <div className="flex flex-col gap-6">
+                {profits.map(report => (
+                    <div key={report.id} className="bg-gray-800 p-6 rounded-lg">
+                        <h3 className="text-xl font-semibold text-orange-400 border-b border-gray-700 pb-3 mb-4">{report.name}</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div className="bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm text-gray-400">Investimento Inicial</p>
+                                <p className="text-2xl font-bold">R$ {parseFloat(report.initial_investment || 0).toFixed(2).replace('.',',')}</p>
+                            </div>
+                            <div className="bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm text-gray-400">Faturamento Bruto</p>
+                                <p className="text-2xl font-bold text-green-400">R$ {parseFloat(report.gross_revenue || 0).toFixed(2).replace('.',',')}</p>
+                            </div>
+                            <div className="bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm text-gray-400">Custo dos Produtos</p>
+                                <p className="text-2xl font-bold text-red-400">R$ {parseFloat(report.cost_of_goods_sold || 0).toFixed(2).replace('.',',')}</p>
+                            </div>
+                            <div className="bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm text-gray-400">Lucro Líquido</p>
+                                <p className="text-2xl font-bold text-teal-400">R$ {parseFloat(report.net_revenue || 0).toFixed(2).replace('.',',')}</p>
+                            </div>
+                            <div className="bg-gray-700 p-4 rounded-lg">
+                                <p className="text-sm text-gray-400">Comissão Síndico ({report.syndic_profit_percentage}%)</p>
+                                <p className="text-2xl font-bold text-yellow-400">R$ {parseFloat(report.syndic_commission || 0).toFixed(2).replace('.',',')}</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+    
+    const renderContent = () => {
+        if (isLoading && !isSalesLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
+        if (error) return <div className="text-red-400">Erro: {error}</div>;
+
+        switch(activeTab) {
+            case 'condominiums':
+                return <CondoManager />;
+            case 'products':
+                 return <ProductManager />;
+            case 'stock': 
+                return <StockManagement />;
+            case 'finance':
+                return <FinanceReport />;
+            case 'sales':
+                return <SalesPage />;
+            default: return <div>Selecione uma opção</div>;
+        }
+    };
     
     return (
         <div className="min-h-screen bg-gray-900 text-white flex">
