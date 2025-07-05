@@ -1,9 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users, Package, Settings, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
+import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, Settings, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar } from 'lucide-react';
 import QRCode from "react-qr-code";
 
 // --- CONFIGURAÇÃO DA API ---
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'; 
+
+// --- FUNÇÕES HELPER ---
+const formatCPF = (value) => {
+  return value.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').substring(0, 14);
+};
+
+const validateCPF = (cpf) => {
+    cpf = cpf.replace(/[^\d]+/g,'');
+    if(cpf === '') return false;
+    if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
+    let add = 0;
+    for (let i=0; i < 9; i ++) add += parseInt(cpf.charAt(i)) * (10 - i);
+    let rev = 11 - (add % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(cpf.charAt(9))) return false;
+    add = 0;
+    for (let i = 0; i < 10; i ++) add += parseInt(cpf.charAt(i)) * (11 - i);
+    rev = 11 - (add % 11);
+    if (rev === 10 || rev === 11) rev = 0;
+    if (rev !== parseInt(cpf.charAt(10))) return false;
+    return true;
+};
 
 // --- PÁGINAS E COMPONENTES ---
 
@@ -14,10 +36,6 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
       <div className="bg-orange-500 h-2.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
     </div>
   );
-};
-
-const formatCPF = (value) => {
-  return value.replace(/\D/g, '').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})/, '$1-$2').substring(0, 14);
 };
 
 const AdminLoginModal = ({ show, onClose, onAdminLogin }) => {
@@ -74,7 +92,7 @@ const AdminLoginModal = ({ show, onClose, onAdminLogin }) => {
     );
 };
 
-const LoginPage = ({ onLogin, onAdminLogin, onSwitchToRegister }) => {
+const LoginPage = ({ onLogin, onAdminLogin, onSwitchToRegister, setPage }) => {
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -113,13 +131,109 @@ const LoginPage = ({ onLogin, onAdminLogin, onSwitchToRegister }) => {
               {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
               <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-105 flex justify-center items-center" disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : 'Entrar'}</button>
             </form>
-            <div className="text-center mt-6"><button onClick={onSwitchToRegister} className="text-orange-400 hover:text-orange-300 transition">Não tem uma conta? Cadastre-se</button></div>
-            <div className="text-center mt-4"><button onClick={() => setShowAdminModal(true)} className="text-sm text-gray-400 hover:text-white transition">Acessar como Administrador</button></div>
+            <div className="flex justify-between items-center mt-6">
+                <button onClick={() => setPage('forgot-password')} className="text-sm text-orange-400 hover:text-orange-300 transition">Esqueci minha senha</button>
+                <button onClick={onSwitchToRegister} className="text-sm text-orange-400 hover:text-orange-300 transition">Não tem uma conta? Cadastre-se</button>
+            </div>
+            <div className="text-center mt-4 border-t border-gray-700 pt-4"><button onClick={() => setShowAdminModal(true)} className="text-sm text-gray-400 hover:text-white transition">Acessar como Administrador</button></div>
           </div>
         </div>
       </div>
     </>
   );
+};
+
+const ForgotPasswordPage = ({ setPage }) => {
+    const [step, setStep] = useState(1); // 1: verify, 2: reset
+    const [cpf, setCpf] = useState('');
+    const [birthDate, setBirthDate] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+    const handleVerifyUser = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+        try {
+            const response = await fetch(`${API_URL}/api/auth/verify-user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cpf: formatCPF(cpf), birth_date: birthDate })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Falha na verificação.');
+            }
+            setStep(2);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            setError('As senhas não coincidem.');
+            return;
+        }
+        if (newPassword.length < 6) {
+            setError('A nova senha deve ter pelo menos 6 caracteres.');
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+        setSuccess('');
+        try {
+            const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cpf: formatCPF(cpf), newPassword })
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Falha ao alterar a senha.');
+            }
+            setSuccess(data.message);
+            setTimeout(() => setPage('login'), 3000);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4">
+            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+                <button onClick={() => setPage('login')} className="text-orange-400 hover:text-orange-300 mb-6 flex items-center gap-2"><ArrowLeft size={16}/> Voltar para o Login</button>
+                <h2 className="text-2xl font-bold text-center mb-6">Recuperar Senha</h2>
+                {step === 1 && (
+                    <form onSubmit={handleVerifyUser}>
+                        <p className="text-center text-gray-400 mb-6">Insira os seus dados para verificarmos a sua identidade.</p>
+                        <div className="mb-4 relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="text" placeholder="Seu CPF" value={cpf} onChange={(e) => setCpf(formatCPF(e.target.value))} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" required /></div>
+                        <div className="mb-6 relative"><Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" required /></div>
+                        {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
+                        <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg flex justify-center items-center" disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : 'Verificar'}</button>
+                    </form>
+                )}
+                {step === 2 && (
+                    <form onSubmit={handleResetPassword}>
+                        <p className="text-center text-green-400 mb-6">Utilizador verificado! Agora, crie uma nova senha.</p>
+                        <div className="mb-4 relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="password" placeholder="Nova senha (mín. 6 caracteres)" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" required /></div>
+                        <div className="mb-6 relative"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input type="password" placeholder="Confirme a nova senha" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" required /></div>
+                        {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
+                        {success && <p className="text-green-400 text-sm text-center mb-4">{success}</p>}
+                        <button type="submit" className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg flex justify-center items-center" disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : 'Alterar Senha'}</button>
+                    </form>
+                )}
+            </div>
+        </div>
+    );
 };
 
 const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
@@ -147,6 +261,10 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
   const handleCpfChange = (e) => { setFormData({...formData, cpf: formatCPF(e.target.value)}); };
   
   const handleRegisterSubmit = async () => {
+      if (!validateCPF(formData.cpf)) {
+          setError('CPF inválido.');
+          return;
+      }
       setIsLoading(true); setError(''); setSuccess('');
       try {
           const response = await fetch(`${API_URL}/api/auth/register`, {
@@ -594,25 +712,27 @@ const CardPaymentPage = ({ user, cart, setPage, setUnlockToken, setCart }) => {
             return;
         }
 
-        const script = document.createElement("script");
-        script.src = "https://sdk.mercadopago.com/js/v2";
-        script.async = true;
-        
-        script.onload = () => {
-            setIsMpReady(true);
-        };
-        
-        script.onerror = () => {
-            setError("Não foi possível carregar o script de pagamento. Verifique a sua conexão.");
-        };
+        const scriptId = 'mercadopago-sdk';
+        let script = document.getElementById(scriptId);
 
-        document.body.appendChild(script);
+        const handleLoad = () => setIsMpReady(true);
+        const handleError = () => setError("Não foi possível carregar o script de pagamento. Verifique a sua conexão.");
+
+        if (!script) {
+            script = document.createElement("script");
+            script.id = scriptId;
+            script.src = "https://sdk.mercadopago.com/js/v2";
+            script.async = true;
+            script.addEventListener('load', handleLoad);
+            script.addEventListener('error', handleError);
+            document.body.appendChild(script);
+        } else {
+            setIsMpReady(true);
+        }
 
         return () => {
-            let existingScript = document.querySelector('script[src="https://sdk.mercadopago.com/js/v2"]');
-            if (existingScript) {
-                document.body.removeChild(existingScript);
-            }
+            script.removeEventListener('load', handleLoad);
+            script.removeEventListener('error', handleError);
         };
     }, []);
 
@@ -923,6 +1043,7 @@ const AdminDashboard = ({ onLogout }) => {
     const [condominiums, setCondominiums] = useState([]);
     const [products, setProducts] = useState([]);
     const [profits, setProfits] = useState([]);
+    const [usersByCondo, setUsersByCondo] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [isCondoModalOpen, setIsCondoModalOpen] = useState(false);
@@ -971,6 +1092,8 @@ const AdminDashboard = ({ onLogout }) => {
             if(condominiums.length === 0) {
                 fetchData('condominiums', setCondominiums);
             }
+        } else if (activeTab === 'users') {
+            fetchData('users-by-condo', setUsersByCondo);
         }
     }, [activeTab]);
 
@@ -1335,9 +1458,35 @@ const AdminDashboard = ({ onLogout }) => {
             </div>
         </div>
     );
+
+    const UserManager = () => (
+        <div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Utilizadores por Condomínio</h2>
+            </div>
+            <div className="bg-gray-800 rounded-lg overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-700">
+                        <tr>
+                            <th className="p-4">Condomínio</th>
+                            <th className="p-4 text-right">Nº de Utilizadores</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {usersByCondo.map(item => (
+                            <tr key={item.id} className="border-b border-gray-700">
+                                <td className="p-4">{item.name}</td>
+                                <td className="p-4 text-right font-bold text-orange-400">{item.user_count}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
     
     const renderContent = () => {
-        if (isLoading && !isSalesLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
+        if (isLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
         if (error) return <div className="text-red-400">Erro: {error}</div>;
 
         switch(activeTab) {
@@ -1351,6 +1500,8 @@ const AdminDashboard = ({ onLogout }) => {
                 return <FinanceReport />;
             case 'sales':
                 return <SalesPage />;
+            case 'users':
+                return <UserManager />;
             default: return <div>Selecione uma opção</div>;
         }
     };
@@ -1371,6 +1522,7 @@ const AdminDashboard = ({ onLogout }) => {
                     <button onClick={() => setActiveTab('products')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'products' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><Package /> Produtos</button>
                     <button onClick={() => setActiveTab('stock')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'stock' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><ShoppingCart /> Estoque</button>
                     <button onClick={() => setActiveTab('finance')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'finance' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><BarChart /> Gestão de Lucros</button>
+                    <button onClick={() => setActiveTab('users')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'users' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><UsersIcon /> Utilizadores</button>
                 </nav>
                 <div className="mt-auto">
                      <button onClick={onLogout} className="flex items-center w-full gap-3 p-3 rounded-md text-red-400 hover:bg-red-500/20 transition"><LogOut /> Sair do Painel</button>
@@ -1458,21 +1610,23 @@ export default function App() {
     case 'register':
       return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setPage('login')} />;
     case 'home':
-      return user ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+      return user ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
     case 'cart':
-        return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+        return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
     case 'payment':
-        return user ? <PaymentPage paymentData={paymentData} setPage={setPage} setCurrentOrder={setCurrentOrder} setUnlockToken={setUnlockToken} paymentMethod={paymentMethod} user={user} cart={cart} setCart={setCart} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+        return user ? <PaymentPage paymentData={paymentData} setPage={setPage} setCurrentOrder={setCurrentOrder} setUnlockToken={setUnlockToken} paymentMethod={paymentMethod} user={user} cart={cart} setCart={setCart} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
     case 'success':
         return <SuccessPage setPage={setPage} unlockToken={unlockToken} currentOrder={currentOrder} />;
     case 'my-account':
-        return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+        return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
     case 'changeCondo':
-        return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+        return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+    case 'forgot-password':
+        return <ForgotPasswordPage setPage={setPage} />;
     case 'admin':
         return <AdminDashboard onLogout={handleLogout} />;
     case 'login':
     default:
-      return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} />;
+      return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
   }
 }
