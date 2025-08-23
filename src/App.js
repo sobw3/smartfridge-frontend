@@ -898,7 +898,7 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
     const [copySuccess, setCopySuccess] = React.useState('');
     const [paymentConfirmed, setPaymentConfirmed] = React.useState(false);
     const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
-    const cancelTargetPage = isDeposit ? 'wallet' : 'cart';
+    const cancelTargetPage = 'home';
 
     React.useEffect(() => {
         const interval = setInterval(async () => {
