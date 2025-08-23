@@ -3,7 +3,7 @@ import React from 'react';
 import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText } from 'lucide-react';
 
 // --- CONFIGURAÇÃO DA API ---
-const API_URL = 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const MERCADOPAGO_PUBLIC_KEY = 'APP_USR-091cb324-37d0-42bd-a985-b2a8a77a10de';
 
 
@@ -782,7 +782,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
             const response = await fetch(`${API_URL}/api/orders/pay-with-wallet`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ items: cart, fridgeId: fridgeId })
+               body: JSON.stringify({ items: cart, fridgeId: fridgeId, condoId: user.condoId })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Falha ao pagar com saldo.');
@@ -813,7 +813,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
                 'Content-Type': 'application/json', 
                 'Authorization': `Bearer ${token}` 
             },
-            body: JSON.stringify({ items: cart, fridgeId: fridgeId })
+             body: JSON.stringify({ items: cart, fridgeId: fridgeId, condoId: user.condoId })
         });
 
         const data = await response.json();
@@ -1369,7 +1369,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
 
     const handleProceedToCardDeposit = () => {
         const amount = parseFloat(depositAmount);
-        const MIN_DEPOSIT = 15.00;
+        const MIN_DEPOSIT = 30.00;
         if (!amount || amount < MIN_DEPOSIT) { setError(`O valor mínimo para depósito com cartão é R$ ${MIN_DEPOSIT.toFixed(2).replace('.', ',')}.`); return; }
         setError('');
         setDepositData({ amount: amount });
@@ -1378,7 +1378,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
 
     const handleCreatePixDeposit = async () => {
         const amount = parseFloat(depositAmount);
-        const MIN_DEPOSIT = 15.00;
+        const MIN_DEPOSIT = 30.00;
         if (!amount || amount < MIN_DEPOSIT) { setError(`O valor mínimo para depósito PIX é R$ ${MIN_DEPOSIT.toFixed(2).replace('.', ',')}.`); return; }
         setIsLoading(true); setError('');
         const token = localStorage.getItem('token');
@@ -2130,7 +2130,10 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
                         
                         <div className="md:col-span-2 border-t border-gray-700 mt-4 pt-4 font-bold text-orange-400">Promoção (Opcional)</div>
 
-                        <div><label className="text-sm text-gray-400">Preço Promocional</label><input name="promotional_price" type="number" step="0.01" value={formData.promotional_price || ''} onChange={handleChange} placeholder="Ex: 7.99" className="w-full bg-gray-700 p-2 rounded-md mt-1" /></div>
+<div className="md:col-span-2 text-sm text-gray-400 bg-gray-700/50 p-3 rounded-md">
+    <Info size={16} className="inline-block mr-2" />
+    O preço promocional será calculado automaticamente (Custo + 30%) quando as datas de início e fim forem definidas.
+</div>
                         <div><label className="text-sm text-gray-400">Início da Promoção</label><input name="promotion_start_date" type="date" value={formData.promotion_start_date || ''} onChange={handleChange} className="w-full bg-gray-700 p-2 rounded-md mt-1" /></div>
                         <div><label className="text-sm text-gray-400">Fim da Promoção</label><input name="promotion_end_date" type="date" value={formData.promotion_end_date || ''} onChange={handleChange} className="w-full bg-gray-700 p-2 rounded-md mt-1" /></div>
 
@@ -2147,43 +2150,73 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
     );
 };
 
-const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout }) => {
-    const [idInput, setIdInput] = React.useState('');
-    const [isLoading, setIsLoading] = React.useState(false);
+const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSelected }) => {
+    const [condos, setCondos] = React.useState([]);
+    const [selectedCondoId, setSelectedCondoId] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(true); // Inicia como true para carregar os condomínios
     const [error, setError] = React.useState('');
 
-    const handleSubmit = async (e) => {
+        React.useEffect(() => {
+        const fetchCondos = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/api/public/condominiums`);
+                if (!response.ok) throw new Error('Não foi possível carregar a lista de condomínios.');
+                const data = await response.json();
+                setCondos(data);
+                // Pré-seleciona o condomínio do utilizador, se existir na lista
+                if (user?.condoId) {
+                    setSelectedCondoId(user.condoId);
+                }
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchCondos();
+    }, [user?.condoId]);
+
+
+   const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
-        if (!idInput) {
-            setError('Por favor, insira o ID da geladeira.');
+        if (!selectedCondoId) {
+            setError('Por favor, selecione um condomínio.');
             setIsLoading(false);
             return;
         }
 
-        try {
+         const selectedCondo = condos.find(c => c.id === parseInt(selectedCondoId));
+        if (!selectedCondo || !selectedCondo.fridge_id) {
+             setError('Este condomínio não tem uma geladeira associada ou é inválido.');
+             setIsLoading(false);
+             return;
+        }
+
+                try {
             const token = localStorage.getItem('token');
+            // Valida usando o ID do condomínio e o ID da geladeira selecionados
             const response = await fetch(`${API_URL}/api/public/validate-fridge`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ condoId: user.condoId, fridgeId: idInput })
+                body: JSON.stringify({ condoId: selectedCondo.id, fridgeId: selectedCondo.fridge_id })
             });
 
             const data = await response.json();
             if (response.ok && data.valid) {
-                localStorage.setItem('savedFridgeId', idInput);
-                setFridgeId(idInput);
-                setPage('home');
+                // Chama a nova função para definir o condomínio e a geladeira para a sessão atual
+                onCondoSelected(selectedCondo);
             } else {
-                setError(data.message || 'ID da geladeira inválido para este condomínio.');
+                setError(data.message || 'Seleção inválida.');
             }
         } catch (err) {
-            setError('Não foi possível validar o ID. Verifique sua conexão.');
+            setError('Não foi possível validar a seleção. Verifique sua conexão.');
         } finally {
             setIsLoading(false);
         }
@@ -2195,18 +2228,23 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout }) => {
                 <div className="text-center mb-8"><span className="text-4xl font-bold text-orange-500">Smart</span><span className="text-4xl font-light text-white">Fridge</span></div>
                 <div className="bg-gray-800 p-8 rounded-xl shadow-2xl">
                     <h2 className="text-2xl font-bold text-center mb-2">Selecione sua Geladeira</h2>
-                    <p className="text-gray-400 text-center mb-6">Digite o código que está na porta da geladeira para continuar.</p>
+                    <p className="text-gray-400 text-center mb-6">Escolha o condomínio para aceder à loja.</p>
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4 relative">
-                            <Refrigerator className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Ex: SF001"
-                                value={idInput}
-                                onChange={(e) => setIdInput(e.target.value.toUpperCase())}
-                                className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                            <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            {/* ALTERAÇÃO: Input substituído por Select */}
+                            <select
+                                value={selectedCondoId}
+                                onChange={(e) => setSelectedCondoId(e.target.value)}
+                                className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none"
                                 required
-                            />
+                                disabled={isLoading || condos.length === 0}
+                            >
+                                <option value="">{isLoading ? 'A carregar...' : 'Selecione um condomínio'}</option>
+                                {condos.map(condo => (
+                                    <option key={condo.id} value={condo.id}>{condo.name}</option>
+                                ))}
+                            </select>
                         </div>
                         {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
                         <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-105 flex justify-center items-center" disabled={isLoading}>
@@ -2223,6 +2261,7 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout }) => {
         </div>
     );
 };
+
 
 const AdminDashboard = ({ onLogout }) => {
     const [activeTab, setActiveTab] = React.useState('sales');
@@ -2894,6 +2933,14 @@ export default function App() {
         setTimeout(() => setToast({ show: false, message: '' }), 3000);
     };
 
+    const handleCondoSelect = (selectedCondo) => {
+        localStorage.setItem('savedFridgeId', selectedCondo.fridge_id);
+        // Atualiza o utilizador na sessão para usar o novo condoId
+        setUser(prevUser => ({ ...prevUser, condoId: selectedCondo.id }));
+        setFridgeId(selectedCondo.fridge_id);
+        setPage('home');
+    };
+
     const updateUserBalance = React.useCallback(async () => {
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -3004,7 +3051,7 @@ export default function App() {
             {(() => {
                 switch (page) {
                     case 'register': return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setPage('login')} />;
-                    case 'fridgeSelection': return user ? <FridgeSelectionPage setFridgeId={setFridgeId} setPage={setPage} user={user} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'fridgeSelection': return user ? <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                     case 'home': return user && fridgeId ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} fridgeId={fridgeId} /> : <FridgeSelectionPage setFridgeId={setFridgeId} setPage={setPage} user={user} onLogout={handleLogout} />;
                     case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                     case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
