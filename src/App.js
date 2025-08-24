@@ -971,44 +971,40 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
     );
 };
 
-const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData }) => {
+const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
-    const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
+    const brickIsInitializing = React.useRef(false); // Ref para controlo
+
+    const cartTotal = React.useMemo(() => 
+        cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0),
+        [cart]
+    );
 
     React.useEffect(() => {
-        if (!MERCADOPAGO_PUBLIC_KEY) {
-            setError("Chave pública do Mercado Pago não configurada.");
+        const scriptId = 'mercadopago-sdk';
+        if (window.MercadoPago) {
+            setIsMpReady(true);
             return;
         }
-        const scriptId = 'mercadopago-sdk';
-        let script = document.getElementById(scriptId);
-        const handleLoad = () => setIsMpReady(true);
-        if (!script) {
-            script = document.createElement("script");
-            script.id = scriptId;
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.async = true;
-            script.addEventListener('load', handleLoad);
-            document.body.appendChild(script);
-        } else {
-            setIsMpReady(true);
-        }
-        return () => { if (script) script.removeEventListener('load', handleLoad); };
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://sdk.mercadopago.com/js/v2";
+        script.async = true;
+        script.onload = () => setIsMpReady(true);
+        document.body.appendChild(script);
     }, []);
 
     React.useEffect(() => {
-        let cardPaymentBrick;
-        if (isMpReady && cartTotal > 0) {
-            try {
-                const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-                const bricksBuilder = mp.bricks();
-                const renderCardPaymentBrick = async () => {
-                    const container = document.getElementById("cardPaymentBrick_container");
-                    if (container) container.innerHTML = ''; // Limpa o container antes de renderizar
+        if (isMpReady && cartTotal > 0 && !brickIsInitializing.current) {
+            brickIsInitializing.current = true;
+            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
+            const bricksBuilder = mp.bricks();
 
-                    cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardPaymentBrick_container", {
+            const renderCardPaymentBrick = async () => {
+                try {
+                    await bricksBuilder.create("cardPayment", "cardPaymentBrick_container", {
                         initialization: {
                             amount: cartTotal,
                             payer: { email: user.email },
@@ -1022,35 +1018,28 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
                                     const response = await fetch(`${API_URL}/api/orders/create-card`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user })
+                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user, fridgeId: fridgeId })
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Pagamento recusado.');
-
                                     setPaymentData({ unlockToken: data.unlockToken });
                                     onPaymentSuccess(data.unlockToken);
                                     setPage('awaitingUnlock');
-
                                 } catch (err) {
                                     setError(err.message);
-                                } finally {
                                     setIsLoading(false);
                                 }
                             },
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
-                };
-                renderCardPaymentBrick();
-            } catch (e) {
-                setError("Erro ao inicializar o formulário de pagamento.");
-            }
+                } catch (e) {
+                    setError("Erro ao inicializar o formulário de pagamento.");
+                }
+            };
+            renderCardPaymentBrick();
         }
-    // --- INÍCIO DA CORREÇÃO ---
-    // A lista de dependências foi simplificada para quebrar o loop infinito,
-    // assim como fizemos no formulário de depósito.
-    }, [isMpReady, cartTotal, user.email, cart, user, setPage, onPaymentSuccess, setPaymentData]);
-    // --- FIM DA CORREÇÃO ---
+    }, [isMpReady, cartTotal, user.email]); // Dependências mínimas e estáveis
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -1062,6 +1051,7 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
             </header>
             <main className="container mx-auto p-4 md:p-8">
                 <div className="max-w-md mx-auto bg-gray-800 p-8 rounded-lg">
+                    <p className="text-center text-lg text-gray-300 mb-4">Valor da compra: <span className="font-bold text-orange-400">R$ {cartTotal.toFixed(2).replace('.', ',')}</span></p>
                     {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
                     {error && <p className="text-red-400 text-center mt-4">{error}</p>}
                     <div id="cardPaymentBrick_container"></div>
@@ -1076,38 +1066,33 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
+    const brickIsInitializing = React.useRef(false); // Ref para controlo
+
     const depositAmount = parseFloat(depositData?.amount || 0);
 
     React.useEffect(() => {
-        if (!MERCADOPAGO_PUBLIC_KEY) { setError("Chave pública do Mercado Pago não configurada."); return; }
         const scriptId = 'mercadopago-sdk';
-        let script = document.getElementById(scriptId);
-        const handleLoad = () => setIsMpReady(true);
-        if (!script) {
-            script = document.createElement("script");
-            script.id = scriptId;
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.async = true;
-            script.addEventListener('load', handleLoad);
-            document.body.appendChild(script);
-        } else {
+        if (window.MercadoPago) {
             setIsMpReady(true);
+            return;
         }
-        return () => { if (script) script.removeEventListener('load', handleLoad); };
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://sdk.mercadopago.com/js/v2";
+        script.async = true;
+        script.onload = () => setIsMpReady(true);
+        document.body.appendChild(script);
     }, []);
 
     React.useEffect(() => {
-        let cardPaymentBrick;
-        if (isMpReady && depositAmount > 0) {
-            try {
-                const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-                const bricksBuilder = mp.bricks();
-                const renderBrick = async () => {
-                    const container = document.getElementById("cardDepositBrick_container");
-                    // Adicionado para limpar o container antes de renderizar e evitar duplicados
-                    if (container) container.innerHTML = '';
-                    
-                    cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardDepositBrick_container", {
+        if (isMpReady && depositAmount > 0 && !brickIsInitializing.current) {
+            brickIsInitializing.current = true;
+            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
+            const bricksBuilder = mp.bricks();
+            
+            const renderBrick = async () => {
+                try {
+                    await bricksBuilder.create("cardPayment", "cardDepositBrick_container", {
                         initialization: {
                             amount: depositAmount,
                             payer: { email: user.email },
@@ -1121,7 +1106,7 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                                     const response = await fetch(`${API_URL}/api/wallet/deposit-card`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, amount: depositAmount, user: user })
+                                        body: JSON.stringify({ ...cardFormData, amount: depositAmount })
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
@@ -1136,17 +1121,13 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
-                };
-                renderBrick();
-            } catch (e) {
-                setError("Erro ao inicializar o formulário de depósito.");
-            }
+                } catch(e) {
+                    setError("Erro ao inicializar o formulário de depósito.");
+                }
+            };
+            renderBrick();
         }
-    // --- INÍCIO DA CORREÇÃO ---
-    // A lista de dependências foi simplificada para quebrar o loop infinito.
-    // Agora, a função só é executada quando o SDK está pronto, o valor do depósito muda, ou o email do utilizador muda.
-    }, [isMpReady, depositAmount, user.email, setPage, onPaymentSuccess]); 
-    // --- FIM DA CORREÇÃO ---
+    }, [isMpReady, depositAmount, user.email]); // Dependências mínimas e estáveis
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
