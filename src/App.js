@@ -1006,7 +1006,8 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
                 const bricksBuilder = mp.bricks();
                 const renderCardPaymentBrick = async () => {
                     const container = document.getElementById("cardPaymentBrick_container");
-                    if (container.innerHTML.trim().length > 0) return;
+                    if (container) container.innerHTML = ''; // Limpa o container antes de renderizar
+
                     cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardPaymentBrick_container", {
                         initialization: {
                             amount: cartTotal,
@@ -1045,7 +1046,11 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
                 setError("Erro ao inicializar o formulário de pagamento.");
             }
         }
-    }, [isMpReady, cart, user, setPage, onPaymentSuccess, cartTotal, setPaymentData]);
+    // --- INÍCIO DA CORREÇÃO ---
+    // A lista de dependências foi simplificada para quebrar o loop infinito,
+    // assim como fizemos no formulário de depósito.
+    }, [isMpReady, cartTotal, user.email, cart, user, setPage, onPaymentSuccess, setPaymentData]);
+    // --- FIM DA CORREÇÃO ---
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
