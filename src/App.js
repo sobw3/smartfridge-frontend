@@ -1135,7 +1135,7 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 setError("Erro ao inicializar o formulário de depósito.");
             }
         }
-    }, [isMpReady, depositAmount, user, setPage, onPaymentSuccess]);
+    }, [isMpReady, depositAmount, user.email, setPage, onPaymentSuccess]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
