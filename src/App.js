@@ -1099,7 +1099,9 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 const bricksBuilder = mp.bricks();
                 const renderBrick = async () => {
                     const container = document.getElementById("cardDepositBrick_container");
-                    if (container.innerHTML.trim().length > 0) return;
+                    // Adicionado para limpar o container antes de renderizar e evitar duplicados
+                    if (container) container.innerHTML = '';
+                    
                     cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardDepositBrick_container", {
                         initialization: {
                             amount: depositAmount,
@@ -1135,7 +1137,11 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 setError("Erro ao inicializar o formulário de depósito.");
             }
         }
-    }, [isMpReady, depositAmount, user.email, setPage, onPaymentSuccess]);
+    // --- INÍCIO DA CORREÇÃO ---
+    // A lista de dependências foi simplificada para quebrar o loop infinito.
+    // Agora, a função só é executada quando o SDK está pronto, o valor do depósito muda, ou o email do utilizador muda.
+    }, [isMpReady, depositAmount, user.email, setPage, onPaymentSuccess]); 
+    // --- FIM DA CORREÇÃO ---
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
