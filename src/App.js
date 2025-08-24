@@ -905,22 +905,28 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
             if (document.visibilityState === 'visible' && !paymentConfirmed) {
                 const token = localStorage.getItem('token');
                 try {
+                    const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
+                    
                     const statusUrl = isDeposit
                         ? `${API_URL}/api/wallet/deposit-status/${paymentData.orderId}`
                         : `${API_URL}/api/orders/${paymentData.orderId}/status`;
 
                     const response = await fetch(statusUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                    
                     if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`[Polling] Erro na resposta do servidor: ${response.status}`, errorText);
+                        console.error(`[Polling] Erro na resposta do servidor: ${response.status}`);
                         return;
                     }
+                    
                     const data = await response.json();
+
                     if (data.status === 'paid') {
                         setPaymentConfirmed(true);
-                        onPaymentSuccess(data.unlockToken);
+                        // A função onPaymentSuccess é chamada para ambos os casos para atualizar saldos, etc.
+                        onPaymentSuccess(); 
                         clearInterval(interval);
-                        const isDeposit = paymentData && !paymentData.pix_qr_code_text.includes("Compra"); // Uma forma mais robusta de verificar
+                        
+                        // Redireciona para a página correta com base na verificação
                         setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'awaitingUnlock'), 2000);
                     }
                 } catch (error) {
