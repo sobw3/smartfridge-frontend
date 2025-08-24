@@ -920,7 +920,8 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
                         setPaymentConfirmed(true);
                         onPaymentSuccess(data.unlockToken);
                         clearInterval(interval);
-                        setTimeout(() => setPage(isDeposit ? 'wallet' : 'awaitingUnlock'), 2000);
+                        const isDeposit = paymentData && !paymentData.pix_qr_code_text.includes("Compra"); // Uma forma mais robusta de verificar
+                        setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'awaitingUnlock'), 2000);
                     }
                 } catch (error) {
                     console.error("[Polling] Erro ao processar a resposta do status:", error);
@@ -1203,6 +1204,28 @@ const EnjoyPage = ({ setPage }) => {
                 <Check size={80} className="text-green-500 mx-auto mb-4" />
                 <h1 className="text-3xl font-bold mb-2">Porta Destravada!</h1>
                 <p className="text-gray-300 mb-6">Retire os seus produtos e feche a porta. Bom apetite!</p>
+            </div>
+        </div>
+    );
+};
+
+const DepositSuccessPage = ({ setPage }) => {
+    React.useEffect(() => {
+        // Inicia um temporizador para redirecionar para a carteira após 5 segundos
+        const timer = setTimeout(() => {
+            setPage('wallet');
+        }, 5000);
+        // Limpa o temporizador se o utilizador sair da página antes
+        return () => clearTimeout(timer);
+    }, [setPage]);
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
+            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+                <CheckCircle2 size={80} className="text-green-500 mx-auto mb-4" />
+                <h1 className="text-3xl font-bold mb-2">Depósito Aprovado!</h1>
+                <p className="text-gray-300 mb-6">O valor foi creditado na sua carteira. A redirecionar...</p>
+                <Loader2 size={48} className="text-orange-400 mx-auto animate-spin" />
             </div>
         </div>
     );
@@ -3058,6 +3081,7 @@ export default function App() {
                     case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={() => { showToast('Depósito realizado com sucesso!'); updateUserBalance(); }} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                     case 'my-tickets': return user ? <MyTicketsPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                     case 'credit': return user ? <CreditPage user={user} setPage={setPage} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'depositSuccess': return user ? <DepositSuccessPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;                   
                     case 'history': return user ? <HistoryPage setPage={setPage} token={localStorage.getItem('token')} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                     case 'login':
                     default: return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
