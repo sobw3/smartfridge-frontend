@@ -975,7 +975,7 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
-    const brickIsInitializing = React.useRef(false); // Ref para controlo
+    const brickIsInitializing = React.useRef(false);
 
     const cartTotal = React.useMemo(() => 
         cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0),
@@ -1018,7 +1018,8 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
                                     const response = await fetch(`${API_URL}/api/orders/create-card`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user, fridgeId: fridgeId })
+                                        // CORREÇÃO: Enviando condoId e fridgeId para o backend
+                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user, condoId: user.condoId, fridgeId: fridgeId })
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Pagamento recusado.');
@@ -1039,7 +1040,7 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
             };
             renderCardPaymentBrick();
         }
-    }, [isMpReady, cartTotal, user.email]); // Dependências mínimas e estáveis
+    }, [isMpReady, cartTotal, user, fridgeId, cart, setPage, onPaymentSuccess, setPaymentData]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
