@@ -882,7 +882,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
                                         {isLoading ? <Loader2 className="animate-spin" /> : (<><CreditCard /> Smart Limite (Disp. R$ {availableCredit.toFixed(2).replace(',',',')})</>)}
                                     </button>
                                 )}
-                                <button onClick={handleCreditCardPayment} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"><CreditCard /> Pagar com Cartão</button>
+                                
                                 <button onClick={handleCreatePixPayment} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2" disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : <><QrCode /> Pagar com PIX</>}</button>
                             </div>
                             <button onClick={clearCart} className="w-full mt-4 text-sm text-gray-400 hover:text-red-400 transition">Limpar Carrinho</button>
