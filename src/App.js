@@ -1521,7 +1521,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
                             <div className="relative mb-4"><label className="block text-sm text-gray-200 mb-1">Valor do Depósito (R$)</label><input type="number" placeholder="Min: 30,00" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <button onClick={handleCreatePixDeposit} disabled={isLoading} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">{isLoading ? <Loader2 className="animate-spin" /> : 'Gerar PIX'}</button>
-                                <button onClick={handleProceedToCardDeposit} disabled={isLoading} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">{isLoading ? <Loader2 className="animate-spin" /> : 'Pagar com Cartão'}</button>
+                                
                             </div>
                             {error && <p className="text-red-400 text-sm text-center mt-4">{error}</p>}
                         </div>
