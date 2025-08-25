@@ -1405,15 +1405,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
         updateUserBalance();
     }, [updateUserBalance]);
 
-    const handleProceedToCardDeposit = () => {
-        const amount = parseFloat(depositAmount);
-        const MIN_DEPOSIT = 30.00;
-        if (!amount || amount < MIN_DEPOSIT) { setError(`O valor mínimo para depósito com cartão é R$ ${MIN_DEPOSIT.toFixed(2).replace('.', ',')}.`); return; }
-        setError('');
-        setDepositData({ amount: amount });
-        setPage('card-deposit');
-    };
-
+    
     const handleCreatePixDeposit = async () => {
         const amount = parseFloat(depositAmount);
         const MIN_DEPOSIT = 30.00;
