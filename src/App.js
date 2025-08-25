@@ -3045,7 +3045,12 @@ export default function App() {
                     const meResponse = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if (meResponse.ok) {
                         const userData = await meResponse.json();
-                        handleLogin(token, userData);
+                        // Apenas carrega os dados do utilizador e da geladeira, sem forçar o fluxo de login.
+                        setUser(userData);
+                        const savedFridgeId = localStorage.getItem('savedFridgeId');
+                        if (savedFridgeId) {
+                            setFridgeId(savedFridgeId);
+                        }
                     } else {
                         handleLogout();
                     }
@@ -3058,7 +3063,7 @@ export default function App() {
         };
         validateToken();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); 
+    }, []);
 
     const handleAdminLogin = () => { setUser({ name: "Admin" }); setPage('admin'); };
     const handleRegister = (token, userData) => { 
