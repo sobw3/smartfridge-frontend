@@ -1074,33 +1074,38 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
-    const brickIsInitializing = React.useRef(false); // Ref para controlo
+    
+    // Usamos 'useRef' para manter uma referência estável ao brick e evitar re-renderizações
+    const brickContainerRef = React.useRef(null);
+    const brickInstanceRef = React.useRef(null);
 
     const depositAmount = parseFloat(depositData?.amount || 0);
 
+    // Efeito para carregar o script do Mercado Pago (isto já estava correto)
     React.useEffect(() => {
-        const scriptId = 'mercadopago-sdk';
         if (window.MercadoPago) {
             setIsMpReady(true);
             return;
         }
         const script = document.createElement("script");
-        script.id = scriptId;
         script.src = "https://sdk.mercadopago.com/js/v2";
         script.async = true;
         script.onload = () => setIsMpReady(true);
         document.body.appendChild(script);
     }, []);
 
+    // Efeito para criar e destruir o formulário do Mercado Pago
     React.useEffect(() => {
-        if (isMpReady && depositAmount > 0 && !brickIsInitializing.current) {
-            brickIsInitializing.current = true;
+        if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
+            // Previne a recriação do brick se ele já existir
+            if (brickInstanceRef.current) return;
+
             const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
             const bricksBuilder = mp.bricks();
             
             const renderBrick = async () => {
                 try {
-                    await bricksBuilder.create("cardPayment", "cardDepositBrick_container", {
+                    const brick = await bricksBuilder.create("cardPayment", brickContainerRef.current.id, {
                         initialization: {
                             amount: depositAmount,
                             payer: { email: user.email },
@@ -1114,7 +1119,7 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                                     const response = await fetch(`${API_URL}/api/wallet/deposit-card`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, amount: depositAmount })
+                                        body: JSON.stringify({ ...cardFormData, amount: depositAmount, user: user })
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
@@ -1129,13 +1134,23 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
+                    brickInstanceRef.current = brick; // Guarda a instância do brick
                 } catch(e) {
                     setError("Erro ao inicializar o formulário de depósito.");
                 }
             };
             renderBrick();
         }
-    }, [isMpReady, depositAmount, user.email]); // Dependências mínimas e estáveis
+
+        // Função de "limpeza": Destrói o formulário quando o utilizador sai da página
+        return () => {
+            if (brickInstanceRef.current) {
+                brickInstanceRef.current.unmount();
+                brickInstanceRef.current = null;
+            }
+        };
+    // A lista de dependências foi cuidadosamente escolhida para evitar o loop
+    }, [isMpReady, depositAmount, user, onPaymentSuccess, setPage]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -1150,7 +1165,8 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                     <p className="text-center text-lg text-gray-300 mb-4">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
                     {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
                     {error && <p className="text-red-400 text-center mt-4">{error}</p>}
-                    <div id="cardDepositBrick_container"></div>
+                    {/* A div agora usa a referência que criámos */}
+                    <div id="cardDepositBrick_container" ref={brickContainerRef}></div>
                     {isLoading && <div className="flex justify-center mt-4"><Loader2 className="animate-spin" /><span>A processar...</span></div>}
                 </div>
             </main>
