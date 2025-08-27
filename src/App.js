@@ -2719,10 +2719,18 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
     const availableCredit = creditLimit - creditUsed;
     const usagePercentage = creditLimit > 0 ? (creditUsed / creditLimit) * 100 : 0;
 
-    const calculateInvoiceTotal = () => {
+        const calculateInvoiceTotal = () => {
         const today = new Date();
-        const dueDate = new Date();
-        dueDate.setDate(user.credit_due_day || 31);
+        today.setHours(0, 0, 0, 0);
+
+        // Cria a data de vencimento para o mês ATUAL
+        let dueDate = new Date(today.getFullYear(), today.getMonth(), user.credit_due_day);
+
+        // SE a data de hoje JÁ PASSOU da data de vencimento deste mês,
+        // a fatura vencerá apenas no PRÓXIMO mês.
+        if (today > dueDate) {
+            dueDate.setMonth(dueDate.getMonth() + 1);
+        }
 
         let total = creditUsed;
         const fees = total * 0.10;
@@ -2738,7 +2746,8 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
             base: creditUsed,
             fees,
             interest,
-            total: total + fees + interest
+            total: total + fees + interest,
+            dueDate: dueDate // Retorna a data correta
         };
     };
 
