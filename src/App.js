@@ -1,6 +1,9 @@
 import React from 'react';
 // Ícones adicionados: History para o novo histórico, FileText para faturas
-import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText } from 'lucide-react';
+import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText, Instagram, MessageSquare, PieChart, LayoutDashboard } from 'lucide-react';
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
+import Slider from "react-slick"; // E adicione esta também
 
 // --- CONFIGURAÇÃO DA API ---
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -503,9 +506,46 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
     );
 };
 
+const BannerCarousel = () => {
+    // Configurações do carrossel
+    const settings = {
+        dots: true, // Mostra os pontinhos de navegação em baixo
+        infinite: true, // O carrossel volta ao início quando chega ao fim
+        speed: 500, // Velocidade da transição em milissegundos
+        slidesToShow: 1, // Mostra 1 banner de cada vez
+        slidesToScroll: 1, // Passa 1 banner de cada vez
+        autoplay: true, // Passa os banners automaticamente
+        autoplaySpeed: 3000, // Muda de banner a cada 3 segundos
+        arrows: false // Esconde as setas laterais para um visual mais limpo
+    };
+
+    // Dados dos banners (substitua pelas suas imagens)
+    const banners = [
+        { id: 1, imageUrl: 'https://i.imgur.com/BWhKz2n.png' },
+        { id: 2, imageUrl: 'https://i.imgur.com/X5TpUD9.png' },
+        { id: 3, imageUrl: 'https://i.imgur.com/hQrNGQf.png' }
+    ];
+
+    return (
+        <div className="mb-8">
+            <Slider {...settings}>
+                {banners.map(banner => (
+                    <div key={banner.id}>
+                        <img 
+                            src={banner.imageUrl} 
+                            alt={`Banner ${banner.id}`} 
+                            className="w-full h-auto object-cover rounded-lg"
+                        />
+                    </div>
+                ))}
+            </Slider>
+        </div>
+    );
+};
+
 const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
     const [showMenu, setShowMenu] = React.useState(false);
-    const [products, setProducts] = React.useState([]);
+    const [products, setProducts] = React.useState({});
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState('');
     const [condos, setCondos] = React.useState([]);
@@ -535,7 +575,8 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
             try {
                 const response = await fetch(`${API_URL}/api/products?condoId=${user.condoId}`);
                 if (!response.ok) { const errData = await response.json(); throw new Error(errData.message || 'Falha ao buscar produtos.'); }
-                const data = await response.json(); setProducts(data);
+                const data = await response.json(); 
+                setProducts(data);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -614,6 +655,8 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
         </div>
     );
 
+    const productCategories = Object.keys(products);
+
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             <SideMenu />
@@ -678,7 +721,18 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                         <input type="text" placeholder="Buscar um produto..." className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)} />
                         {isSearchFocused && searchQuery && (
                             <div className="absolute top-full mt-2 w-full bg-gray-700 rounded-lg shadow-lg z-40 max-h-60 overflow-y-auto">
-                                {/* Lógica de resultados da pesquisa */}
+                                {isSearchLoading ? (
+                                    <div className="p-4 text-center text-gray-400">A procurar...</div>
+                                ) : searchResults.length > 0 ? (
+                                    searchResults.map(product => (
+                                        <div key={product.id} className="p-2 flex items-center gap-3 hover:bg-orange-500/20 cursor-pointer" onClick={() => { addToCart(product); setSearchQuery(''); }}>
+                                            <img src={product.image_url || `https://placehold.co/100x100/374151/ffffff?text=Sem+Foto`} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
+                                            <span>{product.name}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-4 text-center text-gray-400">Nenhum resultado encontrado.</div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -688,56 +742,70 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                 <div className="bg-gray-800 p-4 rounded-lg mb-8 flex justify-between items-center flex-wrap gap-4">
                     <div>
                         <h1 className="text-xl md:text-2xl">Olá, <span className="font-bold text-orange-400">{user?.name}</span>!</h1>
-                        <p className="text-gray-300">Você está vendo produtos no <span className="font-semibold">{currentCondo?.name || '...'}</span>.</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-gray-400 text-sm">Geladeira ID</p>
-                        <p className="font-mono text-lg bg-gray-900 px-2 py-1 rounded">{fridgeId}</p>
+                        <p className="text-gray-300">Confira os produtos disponíveis no <span className="font-semibold">{currentCondo?.name || '...'}</span>.</p>
                     </div>
                 </div>
+                <BannerCarousel />
+
                 {isLoading && (<div className="flex justify-center items-center h-64"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>)}
                 {error && (<div className="text-center p-8 bg-red-900/20 text-red-400 rounded-lg"><p>Oops! Algo deu errado.</p><p className="text-sm">{error}</p></div>)}
+                
                 {!isLoading && !error && (
-                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                        {products.length > 0 ? products.map(product => (
-                            <div key={product.id} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col group transition-all transform hover:-translate-y-1 hover:shadow-orange-500/20">
-                                <div className="relative">
-                                    {product.promotion_end_date && (
-                                        <div className="absolute top-2 left-2 bg-black/70 text-white p-2 rounded-lg flex items-center gap-2 z-10">
-                                            <Flame size={16} className="text-orange-400" />
-                                            <div>
-                                                <p className="text-xs font-bold leading-tight">PROMOÇÃO</p>
-                                                <CountdownTimer endDate={product.promotion_end_date} />
+                    <div className="flex flex-col gap-8">
+                        {productCategories.length > 0 ? productCategories.map(category => (
+                            <div key={category}>
+                                <h2 className="text-2xl font-bold border-b-2 border-orange-500 pb-2 mb-4">{category}</h2>
+                                <div className="flex flex-col gap-3">
+                                    {products[category].map(product => (
+                                        <div 
+                                            key={product.id}
+                                            className={`bg-gray-800 rounded-lg p-3 flex items-center gap-3 transition-all ${product.stock === 0 ? 'opacity-60' : ''}`}
+                                        >
+                                            <img src={product.image_url || `https://placehold.co/100x100/374151/ffffff?text=${product.name.replace(' ', '+')}`} alt={product.name} className="w-16 h-16 rounded-md object-cover flex-shrink-0"/>
+                                            
+                                            <div className="flex-grow min-w-0">
+                                                <h3 className="font-semibold text-gray-100 truncate">{product.name}</h3>
+                                                {product.original_price ? (
+                                                    <div className="flex items-baseline gap-2">
+                                                        <p className="text-lg font-bold text-orange-400">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
+                                                        <p className="text-sm text-gray-400 line-through">R$ {parseFloat(product.original_price).toFixed(2).replace('.', ',')}</p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-lg font-bold text-gray-200">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
+                                                )}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    {product.is_on_sale && <span className="text-xs bg-orange-500 text-white font-bold px-2 py-0.5 rounded-full">PROMO</span>}
+                                                    {product.stock === 0 && <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full">ESGOTADO</span>}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                <button 
+                                                    onClick={() => addToCart(product)} 
+                                                    disabled={product.stock === 0}
+                                                    className="bg-gray-700 p-2 rounded-md hover:bg-gray-600 transition disabled:cursor-not-allowed"
+                                                >
+                                                    <Plus size={18} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => { addToCart(product); setPage('cart'); }} 
+                                                    disabled={product.stock === 0}
+                                                    className="bg-orange-500 p-2 rounded-md hover:bg-orange-600 transition disabled:cursor-not-allowed"
+                                                >
+                                                    <ShoppingCart size={18} />
+                                                </button>
                                             </div>
                                         </div>
-                                    )}
-                                    <img src={product.image_url || `https://placehold.co/300x300/374151/ffffff?text=${product.name.replace(' ', '+')}`} alt={product.name} className="w-full h-40 md:h-48 object-cover" />
-                                </div>
-                                <div className="p-4 flex flex-col flex-grow">
-                                    <h3 className="font-semibold text-base flex-grow">{product.name}</h3>
-                                    <div className="mt-2">
-                                        {product.original_price ? (
-                                            <div>
-                                                <p className="text-sm text-gray-400 line-through">R$ {parseFloat(product.original_price).toFixed(2).replace('.', ',')}</p>
-                                                <p className="text-xl font-bold text-orange-400">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
-                                            </div>
-                                        ) : (
-                                            <p className="text-lg font-bold text-orange-400">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="p-2 grid grid-cols-2 gap-2">
-                                    <button onClick={() => addToCart(product)} className="w-full bg-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white text-xs font-bold py-2 px-2 rounded-md transition">Adicionar</button>
-                                    <button onClick={() => { addToCart(product); setPage('cart'); }} className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2 px-2 rounded-md transition">Comprar</button>
+                                    ))}
                                 </div>
                             </div>
-                        )) : (<div className="col-span-full text-center p-8 bg-gray-800 text-gray-400 rounded-lg"><p className="text-xl font-semibold">Nenhum produto encontrado!</p><p>Parece que não há produtos disponíveis neste condomínio no momento.</p></div>)}
+                        )) : (<div className="text-center p-8 bg-gray-800 text-gray-400 rounded-lg"><p className="text-xl font-semibold">Nenhum produto encontrado!</p><p>Parece que não há produtos disponíveis neste condomínio no momento.</p></div>)}
                     </div>
                 )}
             </main>
         </div>
     );
-}
+};
 
 const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMethod, onPaymentSuccess, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
@@ -757,7 +825,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
             const response = await fetch(`${API_URL}/api/orders/create-pix`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ items: cart, fridgeId: fridgeId })
+                body: JSON.stringify({ items: cart, fridgeId: fridgeId, user: user })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Falha ao gerar pagamento PIX.');
@@ -882,7 +950,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
                                         {isLoading ? <Loader2 className="animate-spin" /> : (<><CreditCard /> Smart Limite (Disp. R$ {availableCredit.toFixed(2).replace(',',',')})</>)}
                                     </button>
                                 )}
-                                <button onClick={handleCreditCardPayment} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"><CreditCard /> Pagar com Cartão</button>
+                                
                                 <button onClick={handleCreatePixPayment} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2" disabled={isLoading}>{isLoading ? <Loader2 className="animate-spin" /> : <><QrCode /> Pagar com PIX</>}</button>
                             </div>
                             <button onClick={clearCart} className="w-full mt-4 text-sm text-gray-400 hover:text-red-400 transition">Limpar Carrinho</button>
@@ -898,29 +966,36 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
     const [copySuccess, setCopySuccess] = React.useState('');
     const [paymentConfirmed, setPaymentConfirmed] = React.useState(false);
     const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
-    const cancelTargetPage = isDeposit ? 'wallet' : 'cart';
+    const cancelTargetPage = 'home';
 
     React.useEffect(() => {
         const interval = setInterval(async () => {
             if (document.visibilityState === 'visible' && !paymentConfirmed) {
                 const token = localStorage.getItem('token');
                 try {
+                    const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
+                    
                     const statusUrl = isDeposit
                         ? `${API_URL}/api/wallet/deposit-status/${paymentData.orderId}`
                         : `${API_URL}/api/orders/${paymentData.orderId}/status`;
 
                     const response = await fetch(statusUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                    
                     if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`[Polling] Erro na resposta do servidor: ${response.status}`, errorText);
+                        console.error(`[Polling] Erro na resposta do servidor: ${response.status}`);
                         return;
                     }
+                    
                     const data = await response.json();
+
                     if (data.status === 'paid') {
                         setPaymentConfirmed(true);
-                        onPaymentSuccess(data.unlockToken);
+                        // A função onPaymentSuccess é chamada para ambos os casos para atualizar saldos, etc.
+                        onPaymentSuccess(); 
                         clearInterval(interval);
-                        setTimeout(() => setPage(isDeposit ? 'wallet' : 'awaitingUnlock'), 2000);
+                        
+                        // Redireciona para a página correta com base na verificação
+                        setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'awaitingUnlock'), 2000);
                     }
                 } catch (error) {
                     console.error("[Polling] Erro ao processar a resposta do status:", error);
@@ -971,43 +1046,40 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
     );
 };
 
-const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData }) => {
+const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
-    const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
+    const brickIsInitializing = React.useRef(false);
+
+    const cartTotal = React.useMemo(() => 
+        cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0),
+        [cart]
+    );
 
     React.useEffect(() => {
-        if (!MERCADOPAGO_PUBLIC_KEY) {
-            setError("Chave pública do Mercado Pago não configurada.");
+        const scriptId = 'mercadopago-sdk';
+        if (window.MercadoPago) {
+            setIsMpReady(true);
             return;
         }
-        const scriptId = 'mercadopago-sdk';
-        let script = document.getElementById(scriptId);
-        const handleLoad = () => setIsMpReady(true);
-        if (!script) {
-            script = document.createElement("script");
-            script.id = scriptId;
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.async = true;
-            script.addEventListener('load', handleLoad);
-            document.body.appendChild(script);
-        } else {
-            setIsMpReady(true);
-        }
-        return () => { if (script) script.removeEventListener('load', handleLoad); };
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.src = "https://sdk.mercadopago.com/js/v2";
+        script.async = true;
+        script.onload = () => setIsMpReady(true);
+        document.body.appendChild(script);
     }, []);
 
     React.useEffect(() => {
-        let cardPaymentBrick;
-        if (isMpReady && cartTotal > 0) {
-            try {
-                const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-                const bricksBuilder = mp.bricks();
-                const renderCardPaymentBrick = async () => {
-                    const container = document.getElementById("cardPaymentBrick_container");
-                    if (container.innerHTML.trim().length > 0) return;
-                    cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardPaymentBrick_container", {
+        if (isMpReady && cartTotal > 0 && !brickIsInitializing.current) {
+            brickIsInitializing.current = true;
+            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
+            const bricksBuilder = mp.bricks();
+
+            const renderCardPaymentBrick = async () => {
+                try {
+                    await bricksBuilder.create("cardPayment", "cardPaymentBrick_container", {
                         initialization: {
                             amount: cartTotal,
                             payer: { email: user.email },
@@ -1021,31 +1093,29 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
                                     const response = await fetch(`${API_URL}/api/orders/create-card`, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user })
+                                        // CORREÇÃO: Enviando condoId e fridgeId para o backend
+                                        body: JSON.stringify({ ...cardFormData, items: cart, user: user, condoId: user.condoId, fridgeId: fridgeId })
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Pagamento recusado.');
-
                                     setPaymentData({ unlockToken: data.unlockToken });
                                     onPaymentSuccess(data.unlockToken);
                                     setPage('awaitingUnlock');
-
                                 } catch (err) {
                                     setError(err.message);
-                                } finally {
                                     setIsLoading(false);
                                 }
                             },
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
-                };
-                renderCardPaymentBrick();
-            } catch (e) {
-                setError("Erro ao inicializar o formulário de pagamento.");
-            }
+                } catch (e) {
+                    setError("Erro ao inicializar o formulário de pagamento.");
+                }
+            };
+            renderCardPaymentBrick();
         }
-    }, [isMpReady, cart, user, setPage, onPaymentSuccess, cartTotal, setPaymentData]);
+    }, [isMpReady, cartTotal, user, fridgeId, cart, setPage, onPaymentSuccess, setPaymentData]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -1057,6 +1127,7 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
             </header>
             <main className="container mx-auto p-4 md:p-8">
                 <div className="max-w-md mx-auto bg-gray-800 p-8 rounded-lg">
+                    <p className="text-center text-lg text-gray-300 mb-4">Valor da compra: <span className="font-bold text-orange-400">R$ {cartTotal.toFixed(2).replace('.', ',')}</span></p>
                     {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
                     {error && <p className="text-red-400 text-center mt-4">{error}</p>}
                     <div id="cardPaymentBrick_container"></div>
@@ -1071,36 +1142,38 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
+    
+    // Usamos 'useRef' para manter uma referência estável ao brick e evitar re-renderizações
+    const brickContainerRef = React.useRef(null);
+    const brickInstanceRef = React.useRef(null);
+
     const depositAmount = parseFloat(depositData?.amount || 0);
 
+    // Efeito para carregar o script do Mercado Pago (isto já estava correto)
     React.useEffect(() => {
-        if (!MERCADOPAGO_PUBLIC_KEY) { setError("Chave pública do Mercado Pago não configurada."); return; }
-        const scriptId = 'mercadopago-sdk';
-        let script = document.getElementById(scriptId);
-        const handleLoad = () => setIsMpReady(true);
-        if (!script) {
-            script = document.createElement("script");
-            script.id = scriptId;
-            script.src = "https://sdk.mercadopago.com/js/v2";
-            script.async = true;
-            script.addEventListener('load', handleLoad);
-            document.body.appendChild(script);
-        } else {
+        if (window.MercadoPago) {
             setIsMpReady(true);
+            return;
         }
-        return () => { if (script) script.removeEventListener('load', handleLoad); };
+        const script = document.createElement("script");
+        script.src = "https://sdk.mercadopago.com/js/v2";
+        script.async = true;
+        script.onload = () => setIsMpReady(true);
+        document.body.appendChild(script);
     }, []);
 
+    // Efeito para criar e destruir o formulário do Mercado Pago
     React.useEffect(() => {
-        let cardPaymentBrick;
-        if (isMpReady && depositAmount > 0) {
-            try {
-                const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-                const bricksBuilder = mp.bricks();
-                const renderBrick = async () => {
-                    const container = document.getElementById("cardDepositBrick_container");
-                    if (container.innerHTML.trim().length > 0) return;
-                    cardPaymentBrick = await bricksBuilder.create("cardPayment", "cardDepositBrick_container", {
+        if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
+            // Previne a recriação do brick se ele já existir
+            if (brickInstanceRef.current) return;
+
+            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
+            const bricksBuilder = mp.bricks();
+            
+            const renderBrick = async () => {
+                try {
+                    const brick = await bricksBuilder.create("cardPayment", brickContainerRef.current.id, {
                         initialization: {
                             amount: depositAmount,
                             payer: { email: user.email },
@@ -1129,13 +1202,23 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
-                };
-                renderBrick();
-            } catch (e) {
-                setError("Erro ao inicializar o formulário de depósito.");
-            }
+                    brickInstanceRef.current = brick; // Guarda a instância do brick
+                } catch(e) {
+                    setError("Erro ao inicializar o formulário de depósito.");
+                }
+            };
+            renderBrick();
         }
-    }, [isMpReady, depositAmount, user, setPage, onPaymentSuccess]);
+
+        // Função de "limpeza": Destrói o formulário quando o utilizador sai da página
+        return () => {
+            if (brickInstanceRef.current) {
+                brickInstanceRef.current.unmount();
+                brickInstanceRef.current = null;
+            }
+        };
+    // A lista de dependências foi cuidadosamente escolhida para evitar o loop
+    }, [isMpReady, depositAmount, user, onPaymentSuccess, setPage]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -1150,7 +1233,8 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                     <p className="text-center text-lg text-gray-300 mb-4">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
                     {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
                     {error && <p className="text-red-400 text-center mt-4">{error}</p>}
-                    <div id="cardDepositBrick_container"></div>
+                    {/* A div agora usa a referência que criámos */}
+                    <div id="cardDepositBrick_container" ref={brickContainerRef}></div>
                     {isLoading && <div className="flex justify-center mt-4"><Loader2 className="animate-spin" /><span>A processar...</span></div>}
                 </div>
             </main>
@@ -1210,6 +1294,28 @@ const EnjoyPage = ({ setPage }) => {
                 <Check size={80} className="text-green-500 mx-auto mb-4" />
                 <h1 className="text-3xl font-bold mb-2">Porta Destravada!</h1>
                 <p className="text-gray-300 mb-6">Retire os seus produtos e feche a porta. Bom apetite!</p>
+            </div>
+        </div>
+    );
+};
+
+const DepositSuccessPage = ({ setPage }) => {
+    React.useEffect(() => {
+        // Inicia um temporizador para redirecionar para a carteira após 5 segundos
+        const timer = setTimeout(() => {
+            setPage('wallet');
+        }, 5000);
+        // Limpa o temporizador se o utilizador sair da página antes
+        return () => clearTimeout(timer);
+    }, [setPage]);
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
+            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+                <CheckCircle2 size={80} className="text-green-500 mx-auto mb-4" />
+                <h1 className="text-3xl font-bold mb-2">Depósito Aprovado!</h1>
+                <p className="text-gray-300 mb-6">O valor foi creditado na sua carteira. A redirecionar...</p>
+                <Loader2 size={48} className="text-orange-400 mx-auto animate-spin" />
             </div>
         </div>
     );
@@ -1367,15 +1473,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
         updateUserBalance();
     }, [updateUserBalance]);
 
-    const handleProceedToCardDeposit = () => {
-        const amount = parseFloat(depositAmount);
-        const MIN_DEPOSIT = 30.00;
-        if (!amount || amount < MIN_DEPOSIT) { setError(`O valor mínimo para depósito com cartão é R$ ${MIN_DEPOSIT.toFixed(2).replace('.', ',')}.`); return; }
-        setError('');
-        setDepositData({ amount: amount });
-        setPage('card-deposit');
-    };
-
+    
     const handleCreatePixDeposit = async () => {
         const amount = parseFloat(depositAmount);
         const MIN_DEPOSIT = 30.00;
@@ -1488,10 +1586,10 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
                     {activeAction === 'deposit' && (
                         <div className="bg-gray-800 p-6 rounded-lg animate-fade-in-fast">
                             <h3 className="text-xl font-semibold mb-4 text-white">Adicionar Saldo</h3>
-                            <div className="relative mb-4"><label className="block text-sm text-gray-200 mb-1">Valor do Depósito (R$)</label><input type="number" placeholder="Min: 15,00" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
+                            <div className="relative mb-4"><label className="block text-sm text-gray-200 mb-1">Valor do Depósito (R$)</label><input type="number" placeholder="Min: 30,00" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <button onClick={handleCreatePixDeposit} disabled={isLoading} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">{isLoading ? <Loader2 className="animate-spin" /> : 'Gerar PIX'}</button>
-                                <button onClick={handleProceedToCardDeposit} disabled={isLoading} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">{isLoading ? <Loader2 className="animate-spin" /> : 'Pagar com Cartão'}</button>
+                                
                             </div>
                             {error && <p className="text-red-400 text-sm text-center mt-4">{error}</p>}
                         </div>
@@ -1565,18 +1663,25 @@ const DailyPromotionsWidget = ({ token }) => {
     );
 };
 
+// App.js -> Substitua o seu EntradasVendasPage por este
+
 const EntradasVendasPage = ({ condominiums, token }) => {
-    const [logData, setLogData] = React.useState({ log: [], pagination: {} });
+    // ALTERAÇÃO: O estado agora guarda o objeto completo (log, summary, pagination)
+    const [reportData, setReportData] = React.useState({ log: [], summary: {}, pagination: {} });
+    const [expandedRow, setExpandedRow] = React.useState(null); // Estado para controlar qual linha está expandida
+
     const getTodayInBrasilia = () => {
         const date = new Date();
         const [day, month, year] = date.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }).split('/');
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     };
+
     const [filterInputs, setFilterInputs] = React.useState({ condoId: condominiums[0]?.id || '', startDate: '', endDate: '' });
     const [activeFilters, setActiveFilters] = React.useState({ condoId: condominiums[0]?.id || '', startDate: '', endDate: '' });
     const [currentPage, setCurrentPage] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
+
     const fetchLogData = React.useCallback(async (page = 1) => {
         if (!activeFilters.condoId) return;
         setIsLoading(true); setError(''); setCurrentPage(page);
@@ -1587,15 +1692,17 @@ const EntradasVendasPage = ({ condominiums, token }) => {
             const response = await fetch(`${API_URL}/api/admin/sales?${params.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar dados de vendas e entradas.');
             const data = await response.json();
-            setLogData({ log: data.log || [], pagination: data.pagination || {} });
+            setReportData({ log: data.log || [], summary: data.summary || {}, pagination: data.pagination || {} });
         } catch (err) {
             setError(err.message);
-            setLogData({ log: [], pagination: {} });
+            setReportData({ log: [], summary: {}, pagination: {} });
         } finally {
             setIsLoading(false);
         }
     }, [activeFilters, token]);
+
     React.useEffect(() => { fetchLogData(currentPage); }, [activeFilters, currentPage, fetchLogData]);
+
     const handleInputChange = (e) => { setFilterInputs(prev => ({ ...prev, [e.target.name]: e.target.value })); };
     const handleApplyFilters = () => { setCurrentPage(1); setActiveFilters(filterInputs); };
     const handleFilterToday = () => {
@@ -1605,12 +1712,19 @@ const EntradasVendasPage = ({ condominiums, token }) => {
         setActiveFilters(newFilters);
         setCurrentPage(1);
     };
-    const totalSales = logData.log.filter(item => item.type === 'Venda').reduce((sum, item) => sum + parseFloat(item.amount), 0);
-    const totalDeposits = logData.log.filter(item => item.type === 'Depósito').reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+    const toggleRow = (id) => {
+        setExpandedRow(prev => prev === id ? null : id);
+    };
+    
+    // Calcula o ticket médio
+    const summary = reportData.summary;
+    const ticketMedio = summary.total_orders > 0 ? summary.total_revenue / summary.total_orders : 0;
+
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6">Extrato de Entradas e Vendas</h2>
-            <div className="mb-8"><DailyPromotionsWidget token={token} /></div>
+            <h2 className="text-3xl font-bold mb-6">Relatório de Vendas</h2>
+            
             <div className="bg-gray-800 p-4 rounded-lg mb-6 flex flex-wrap items-end gap-4">
                 <div><label className="text-sm text-gray-400 mb-1 block">Condomínio</label><select name="condoId" onChange={handleInputChange} value={filterInputs.condoId} className="bg-gray-700 border border-gray-600 rounded-lg py-2 px-3">{condominiums.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                 <div><label className="text-sm text-gray-400 mb-1 block">De</label><input name="startDate" type="date" onChange={handleInputChange} value={filterInputs.startDate} className="bg-gray-700 border border-gray-600 rounded-lg py-2 px-3" /></div>
@@ -1618,28 +1732,54 @@ const EntradasVendasPage = ({ condominiums, token }) => {
                 <button onClick={handleFilterToday} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Hoje</button>
                 <button onClick={handleApplyFilters} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><Filter size={16} /> Aplicar</button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <AdminStatCard icon={<ShoppingCart size={32} />} label="Total em Vendas (no período)" value={`R$ ${totalSales.toFixed(2).replace('.', ',')}`} colorClass="text-green-400" />
-                <AdminStatCard icon={<ArrowDownToLine size={32} />} label="Total em Depósitos (no período)" value={`R$ ${totalDeposits.toFixed(2).replace('.', ',')}`} colorClass="text-blue-400" />
+
+            {/* --- CARDS DE RESUMO --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <AdminStatCard icon={<DollarSign size={32} />} label="Faturamento Total (período)" value={`R$ ${summary.total_revenue?.toFixed(2)}`} colorClass="text-green-400" />
+                <AdminStatCard icon={<PiggyBank size={32} />} label="Lucro Líquido Total (período)" value={`R$ ${summary.total_net_profit?.toFixed(2)}`} colorClass="text-teal-400" />
+                <AdminStatCard icon={<ShoppingCart size={32} />} label="Nº de Pedidos (período)" value={summary.total_orders} colorClass="text-blue-400" />
+                <AdminStatCard icon={<UsersIcon size={32} />} label="Ticket Médio (período)" value={`R$ ${ticketMedio.toFixed(2)}`} />
             </div>
-            <h3 className="text-2xl font-bold mb-4">Histórico de Transações</h3>
+
+            <h3 className="text-2xl font-bold mb-4">Histórico de Vendas</h3>
             {isLoading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div> : error ? <p className="text-red-400">{error}</p> : (
                 <div className="bg-gray-800 rounded-lg overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-700"><tr><th className="p-4">Tipo</th><th className="p-4">Cliente</th><th className="p-4">Valor</th><th className="p-4">Método</th><th className="p-4">Data</th></tr></thead>
+                        <thead className="bg-gray-700"><tr><th className="p-4 w-12"></th><th className="p-4">Cliente</th><th className="p-4">Data</th><th className="p-4">Faturamento</th><th className="p-4">Lucro Líquido</th><th className="p-4">Método</th></tr></thead>
                         <tbody>
-                            {logData.log?.length > 0 ? logData.log.map(item => (
-                                <tr key={`${item.type}-${item.id}`} className="border-b border-gray-700 hover:bg-gray-700/50">
-                                    <td className="p-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.type === 'Venda' ? 'bg-green-800 text-green-300' : 'bg-blue-800 text-blue-300'}`}>{item.type}</span></td>
-                                    <td className="p-4">{item.user_name} <span className="text-gray-400 text-sm">({item.user_cpf})</span></td>
-                                    <td className="p-4 font-bold text-orange-400">R$ {parseFloat(item.amount).toFixed(2).replace('.', ',')}</td>
-                                    <td className="p-4 capitalize">{item.payment_method || 'N/A'}</td>
-                                    <td className="p-4 text-sm">{new Date(item.created_at).toLocaleString('pt-BR')}</td>
-                                </tr>
-                            )) : (<tr><td colSpan="5" className="text-center p-8 text-gray-400">Nenhuma transação encontrada para os filtros selecionados.</td></tr>)}
+                            {reportData.log?.length > 0 ? reportData.log.map(item => (
+                                <React.Fragment key={item.id}>
+                                    <tr className="border-b border-gray-700 hover:bg-gray-700/50 cursor-pointer" onClick={() => toggleRow(item.id)}>
+                                        <td className="p-4">
+                                            <button>{expandedRow === item.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</button>
+                                        </td>
+                                        <td className="p-4">{item.user_name} <span className="text-gray-400 text-sm">({item.user_cpf})</span></td>
+                                        <td className="p-4 text-sm">{new Date(item.created_at).toLocaleString('pt-BR')}</td>
+                                        <td className="p-4 font-bold text-green-400">R$ {parseFloat(item.amount).toFixed(2).replace('.', ',')}</td>
+                                        <td className="p-4 font-bold text-teal-400">R$ {parseFloat(item.net_profit).toFixed(2).replace('.', ',')}</td>
+                                        <td className="p-4 capitalize">{item.payment_method || 'N/A'}</td>
+                                    </tr>
+                                    {/* --- LINHA EXPANSÍVEL COM DETALHES DOS PRODUTOS --- */}
+                                    {expandedRow === item.id && (
+                                        <tr className="bg-gray-900">
+                                            <td colSpan="6" className="p-4">
+                                                <h4 className="font-bold mb-2">Itens do Pedido:</h4>
+                                                <ul className="list-disc pl-5 text-gray-300">
+                                                    {item.items.map((prod, index) => (
+                                                        <li key={index}>
+                                                            {prod.quantity}x {prod.product_name} - 
+                                                            <span className="font-mono"> (R$ {parseFloat(prod.price).toFixed(2)})</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
+                            )) : (<tr><td colSpan="6" className="text-center p-8 text-gray-400">Nenhuma venda encontrada para os filtros selecionados.</td></tr>)}
                         </tbody>
                     </table>
-                    <Pagination currentPage={currentPage} totalPages={Math.ceil((logData?.pagination?.total || 0) / (logData?.pagination?.limit || 10))} onPageChange={fetchLogData} />
+                    <Pagination currentPage={currentPage} totalPages={Math.ceil((reportData?.pagination?.total || 0) / (reportData?.pagination?.limit || 10))} onPageChange={fetchLogData} />
                 </div>
             )}
         </div>
@@ -2144,6 +2284,14 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
                         <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-500 py-2 px-4 rounded-md">Cancelar</button>
                         <button type="submit" className="bg-green-600 hover:bg-green-700 py-2 px-4 rounded-md">Salvar Produto</button>
                     </div>
+                    <div className="md:col-span-2"><label className="text-sm text-gray-400">Categoria</label>
+    <select name="category" value={formData.category || ''} onChange={handleChange} className="w-full bg-gray-700 p-2 rounded-md mt-1">
+        <option value="">Nenhuma</option>
+        <option value="Bebidas">Bebidas</option>
+        <option value="Frios">Frios</option>
+        <option value="Doces">Doces</option>
+    </select>
+</div>
                 </form>
             </div>
         </div>
@@ -2153,10 +2301,12 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
 const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSelected }) => {
     const [condos, setCondos] = React.useState([]);
     const [selectedCondoId, setSelectedCondoId] = React.useState('');
-    const [isLoading, setIsLoading] = React.useState(true); // Inicia como true para carregar os condomínios
+    // --- ADICIONADO: Estado para controlar a checkbox ---
+    const [rememberSelection, setRememberSelection] = React.useState(true);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState('');
 
-        React.useEffect(() => {
+    React.useEffect(() => {
         const fetchCondos = async () => {
             setIsLoading(true);
             try {
@@ -2164,7 +2314,6 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                 if (!response.ok) throw new Error('Não foi possível carregar a lista de condomínios.');
                 const data = await response.json();
                 setCondos(data);
-                // Pré-seleciona o condomínio do utilizador, se existir na lista
                 if (user?.condoId) {
                     setSelectedCondoId(user.condoId);
                 }
@@ -2189,16 +2338,15 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
             return;
         }
 
-         const selectedCondo = condos.find(c => c.id === parseInt(selectedCondoId));
+        const selectedCondo = condos.find(c => c.id === parseInt(selectedCondoId));
         if (!selectedCondo || !selectedCondo.fridge_id) {
-             setError('Este condomínio não tem uma geladeira associada ou é inválido.');
-             setIsLoading(false);
-             return;
+            setError('Este condomínio não tem uma geladeira associada ou é inválido.');
+            setIsLoading(false);
+            return;
         }
 
-                try {
+        try {
             const token = localStorage.getItem('token');
-            // Valida usando o ID do condomínio e o ID da geladeira selecionados
             const response = await fetch(`${API_URL}/api/public/validate-fridge`, {
                 method: 'POST',
                 headers: {
@@ -2210,8 +2358,8 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
 
             const data = await response.json();
             if (response.ok && data.valid) {
-                // Chama a nova função para definir o condomínio e a geladeira para a sessão atual
-                onCondoSelected(selectedCondo);
+                // --- ALTERAÇÃO: Passa o valor da checkbox para a função onCondoSelected ---
+                onCondoSelected(selectedCondo, rememberSelection);
             } else {
                 setError(data.message || 'Seleção inválida.');
             }
@@ -2232,7 +2380,6 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4 relative">
                             <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            {/* ALTERAÇÃO: Input substituído por Select */}
                             <select
                                 value={selectedCondoId}
                                 onChange={(e) => setSelectedCondoId(e.target.value)}
@@ -2246,6 +2393,19 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                                 ))}
                             </select>
                         </div>
+                        
+                        {/* --- ADICIONADO: Checkbox "Lembrar seleção" --- */}
+                        <div className="my-4 flex items-center justify-center">
+                            <input
+                                id="remember"
+                                type="checkbox"
+                                checked={rememberSelection}
+                                onChange={(e) => setRememberSelection(e.target.checked)}
+                                className="h-4 w-4 text-orange-600 bg-gray-700 border-gray-600 rounded focus:ring-orange-500"
+                            />
+                            <label htmlFor="remember" className="ml-2 text-sm text-gray-300">Lembrar minha seleção</label>
+                        </div>
+
                         {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
                         <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-105 flex justify-center items-center" disabled={isLoading}>
                             {isLoading ? <Loader2 className="animate-spin" /> : 'Entrar na Loja'}
@@ -2262,9 +2422,231 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
     );
 };
 
+// App.js -> Adicione este componente junto com os outros componentes do Admin
+
+// App.js -> Substitua o seu InventoryAnalysisPage por este
+
+const InventoryAnalysisPage = ({ condominiums, token }) => {
+    const [analysisData, setAnalysisData] = React.useState({ analysis: [], insights: {} });
+    const [selectedCondoId, setSelectedCondoId] = React.useState(condominiums[0]?.id || '');
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [error, setError] = React.useState('');
+
+    React.useEffect(() => {
+        if (!selectedCondoId) return;
+        const fetchAnalysis = async () => {
+            setIsLoading(true);
+            setError('');
+            try {
+                const response = await fetch(`${API_URL}/api/admin/inventory-analysis?condoId=${selectedCondoId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Falha ao buscar dados de análise.');
+                const data = await response.json();
+                setAnalysisData(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchAnalysis();
+    }, [selectedCondoId, token]);
+
+    const ProgressBar = ({ value, max }) => {
+        const percentage = max > 0 ? (value / max) * 100 : 0;
+        let bgColor = 'bg-green-500';
+        if (percentage < 50) bgColor = 'bg-yellow-500';
+        if (percentage < 25) bgColor = 'bg-red-500';
+
+        return (
+            <div className="w-full bg-gray-700 rounded-full h-2.5">
+                <div className={`${bgColor} h-2.5 rounded-full`} style={{ width: `${percentage}%` }}></div>
+            </div>
+        );
+    };
+
+    const AIInsights = ({ insights }) => (
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+            <h3 className="text-2xl font-bold mb-4 text-orange-400">Insights do Assistente</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h4 className="font-semibold text-lg mb-2">🏆 Mais Vendidos (30 dias)</h4>
+                    <div className="flex flex-col gap-2 text-sm">
+                        {/* CORREÇÃO APLICADA AQUI com '?.' */}
+                        {insights.topSellers?.map(p => <p key={p.id} className="bg-gray-700 p-2 rounded-md">{p.name} <span className="font-bold float-right">{p.units_sold_last_30_days} un.</span></p>)}
+                    </div>
+                </div>
+                <div>
+                    <h4 className="font-semibold text-lg mb-2">📉 Menos Vendidos (30 dias)</h4>
+                     <div className="flex flex-col gap-2 text-sm">
+                        {/* CORREÇÃO APLICADA AQUI com '?.' */}
+                        {insights.lowSellers?.map(p => <p key={p.id} className="bg-gray-700 p-2 rounded-md">{p.name} <span className="font-bold float-right">{p.units_sold_last_30_days} un.</span></p>)}
+                    </div>
+                </div>
+                <div>
+                    <h4 className="font-semibold text-lg mb-2">💡 Sugestão de Promoção</h4>
+                    <div className="flex flex-col gap-2 text-sm text-gray-300">
+                        <p>Para aumentar o giro de stock, considere criar uma promoção para estes produtos:</p>
+                        {/* CORREÇÃO APLICADA AQUI com '?.' */}
+                        {insights.promotionSuggestions?.map(p => <p key={p.id} className="font-bold text-orange-300 bg-gray-700 p-2 rounded-md">- {p.name}</p>)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    return (
+        <div>
+            <h2 className="text-3xl font-bold mb-6">Análise de Inventário</h2>
+            <div className="bg-gray-800 p-4 rounded-lg mb-6 flex items-center gap-4">
+                <label className="text-sm text-gray-400">Filtrar por Condomínio:</label>
+                <select onChange={(e) => setSelectedCondoId(e.target.value)} value={selectedCondoId} className="bg-gray-700 border border-gray-600 rounded-lg py-2 px-3">
+                    {condominiums.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+            </div>
+            
+            {isLoading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin text-orange-400" size={48}/></div> : 
+             error ? <p className="text-red-400 text-center">{error}</p> :
+             (
+                <>
+                    {/* CORREÇÃO APLICADA AQUI com '?.' */}
+                    {analysisData.insights && <AIInsights insights={analysisData.insights} />}
+
+                    <h3 className="text-2xl font-bold mb-4 mt-8">Relatório Detalhado de Produtos</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {/* CORREÇÃO APLICADA AQUI com '?.' */}
+                        {analysisData.analysis?.map(product => (
+                            <div key={product.id} className="bg-gray-800 rounded-lg p-4 flex flex-col gap-4">
+                                <div className="flex items-center gap-4">
+                                    <img src={product.image_url || 'https://placehold.co/100x100/374151/ffffff?text=Sem+Foto'} alt={product.name} className="w-16 h-16 rounded-md object-cover"/>
+                                    <div>
+                                        <h3 className="font-bold text-lg">{product.name}</h3>
+                                        <p className="text-sm text-gray-400">Preço Venda: R$ {parseFloat(product.sale_price).toFixed(2)}</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex justify-between text-sm mb-1">
+                                        <span className="text-gray-300">Estoque Atual</span>
+                                        <span className="font-bold">{product.current_stock} / {product.critical_stock_level * 2} (Máx. Sugerido)</span>
+                                    </div>
+                                    <ProgressBar value={product.current_stock} max={product.critical_stock_level * 2} />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 text-center">
+                                    <div className="bg-gray-700 p-2 rounded-md">
+                                        <p className="text-xs text-gray-400">Custo Total em Stock</p>
+                                        <p className="font-bold text-yellow-400">R$ {parseFloat(product.total_cost_in_stock).toFixed(2)}</p>
+                                    </div>
+                                    <div className="bg-gray-700 p-2 rounded-md">
+                                        <p className="text-xs text-gray-400">Lucro Potencial</p>
+                                        <p className="font-bold text-green-400">R$ {parseFloat(product.potential_net_profit).toFixed(2)}</p>
+                                    </div>
+                                    <div className="bg-gray-700 p-2 rounded-md">
+                                        <p className="text-xs text-gray-400">Vendas (30 dias)</p>
+                                        <p className="font-bold">{product.units_sold_last_30_days} un.</p>
+                                    </div>
+                                    <div className="bg-gray-700 p-2 rounded-md">
+                                        <p className="text-xs text-gray-400">Lucro (30 dias)</p>
+                                        <p className="font-bold text-teal-400">R$ {parseFloat(product.net_profit_last_30_days).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+             )
+            }
+        </div>
+    );
+};
+
+
+// App.js -> Adicione este componente junto com os outros componentes do Admin
+
+const AdminDashboardPage = ({ token, setActiveTab }) => {
+    const [stats, setStats] = React.useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [error, setError] = React.useState('');
+
+    React.useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/dashboard-stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Falha ao buscar estatísticas.');
+                const data = await response.json();
+                setStats(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, [token]);
+
+    const BarChart = ({ data, title }) => {
+        const maxValue = Math.max(...data.map(item => item.total), 0);
+        return (
+            <div className="bg-gray-800 p-6 rounded-lg">
+                <h3 className="text-xl font-bold mb-4">{title}</h3>
+                <div className="flex justify-between items-end h-64 gap-2">
+                    {data.map((item, index) => (
+                        <div key={index} className="flex-1 flex flex-col items-center justify-end">
+                            <div 
+                                className="w-full bg-orange-500 rounded-t-md hover:bg-orange-400 transition-colors"
+                                style={{ height: `${maxValue > 0 ? (item.total / maxValue) * 100 : 0}%` }}
+                                title={`R$ ${item.total.toFixed(2)}`}
+                            ></div>
+                            <p className="text-xs text-gray-400 mt-2">{item.date}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-orange-400" size={48}/></div>;
+    if (error) return <p className="text-red-400 text-center">{error}</p>;
+
+    return (
+        <div className="flex flex-col gap-8">
+            <h2 className="text-3xl font-bold">Dashboard</h2>
+            
+            {/* Cards de Métricas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <AdminStatCard icon={<DollarSign size={32} />} label="Faturamento de Hoje" value={`R$ ${stats?.revenue_today.toFixed(2)}`} colorClass="text-green-400" />
+                <AdminStatCard icon={<ShoppingCart size={32} />} label="Pedidos Hoje" value={stats?.orders_today} colorClass="text-blue-400" />
+                <AdminStatCard icon={<User size={32} />} label="Novos Utilizadores Hoje" value={stats?.new_users_today} colorClass="text-teal-400" />
+                <AdminStatCard icon={<UsersIcon size={32} />} label="Total de Utilizadores" value={stats?.total_users} />
+            </div>
+
+            {/* Gráfico e Atalhos */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <BarChart data={stats?.sales_last_7_days || []} title="Vendas (Últimos 7 Dias)" />
+                </div>
+                <div>
+                    <div className="bg-gray-800 p-6 rounded-lg">
+                        <h3 className="text-xl font-bold mb-4">Atalhos Rápidos</h3>
+                        <div className="flex flex-col gap-3">
+                            <button onClick={() => setActiveTab('inventory-analysis')} className="w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-md transition flex items-center gap-3"><PieChart size={20} /> Análise de Inventário</button>
+                            <button onClick={() => setActiveTab('critical-stock')} className="w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-md transition flex items-center gap-3"><AlertTriangle size={20} /> Estoque Crítico</button>
+                            <button onClick={() => setActiveTab('users')} className="w-full text-left bg-gray-700 hover:bg-gray-600 p-3 rounded-md transition flex items-center gap-3"><UsersIcon size={20} /> Gestão de Utilizadores</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const AdminDashboard = ({ onLogout }) => {
-    const [activeTab, setActiveTab] = React.useState('sales');
+    const [activeTab, setActiveTab] = React.useState('dashboard');
     const [condominiums, setCondominiums] = React.useState([]);
     const [products, setProducts] = React.useState([]);
     const [profits, setProfits] = React.useState([]);
@@ -2275,6 +2657,7 @@ const AdminDashboard = ({ onLogout }) => {
     const [isProductModalOpen, setIsProductModalOpen] = React.useState(false);
     const [currentProduct, setCurrentProduct] = React.useState(null);
     const token = localStorage.getItem('adminToken');
+
     const fetchData = React.useCallback(async (dataType, setData, params = '') => {
         setIsLoading(true); setError('');
         try {
@@ -2288,6 +2671,7 @@ const AdminDashboard = ({ onLogout }) => {
             setIsLoading(false);
         }
     }, [token]);
+
     React.useEffect(() => {
         if (condominiums.length === 0) { fetchData('condominiums', setCondominiums); }
         switch (activeTab) {
@@ -2297,6 +2681,7 @@ const AdminDashboard = ({ onLogout }) => {
             default: break;
         }
     }, [activeTab, condominiums.length, fetchData]);
+
     const handleOpenCondoModal = (condo = null) => { setCurrentCondo(condo); setIsCondoModalOpen(true); };
     const handleCloseCondoModal = () => { setIsCondoModalOpen(false); setCurrentCondo(null); };
     const handleSaveCondo = async (condoData) => {
@@ -2386,11 +2771,13 @@ const AdminDashboard = ({ onLogout }) => {
     );
 
     const renderContent = () => {
-        if (isLoading && activeTab !== 'sales' && activeTab !== 'users' && activeTab !== 'central-cashier') return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
+        if (isLoading && activeTab !== 'sales' && activeTab !== 'users' && activeTab !== 'central-cashier' && activeTab !== 'inventory-analysis') return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
         if (error) return <div className="text-red-400">Erro: {error}</div>;
         switch (activeTab) {
+            case 'dashboard': return <AdminDashboardPage token={token} setActiveTab={setActiveTab} />;
             case 'sales': return <EntradasVendasPage condominiums={condominiums} token={token} />;
             case 'central-cashier': return <CentralCashierPage token={token} condominiums={condominiums} />;
+            case 'inventory-analysis': return <InventoryAnalysisPage condominiums={condominiums} token={token} />;
             case 'critical-stock': return <CriticalStockPage token={token} />;
             case 'users': return <UserManagementPage condominiums={condominiums} token={token} />;
             case 'stock': return <StockManagement condominiums={condominiums} token={token} />;
@@ -2400,6 +2787,7 @@ const AdminDashboard = ({ onLogout }) => {
             default: return <div>Selecione uma opção</div>;
         }
     };
+
     return (
         <div className="min-h-screen bg-gray-900 text-white flex">
             <CondoModal isOpen={isCondoModalOpen} onClose={handleCloseCondoModal} onSave={handleSaveCondo} condo={currentCondo} />
@@ -2409,8 +2797,10 @@ const AdminDashboard = ({ onLogout }) => {
                     <span className="text-2xl font-bold text-orange-500">Smart</span><span className="text-2xl font-light text-white">Fridge</span><p className="text-sm text-gray-400">Painel Admin</p>
                 </div>
                 <nav className="flex flex-col gap-2 flex-grow">
+                    <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'dashboard' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><LayoutDashboard /> Dashboard</button>
                     <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'sales' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><DollarSign /> Entradas e Vendas</button>
                     <button onClick={() => setActiveTab('central-cashier')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'central-cashier' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><PiggyBank /> Caixa Central</button>
+                    <button onClick={() => setActiveTab('inventory-analysis')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'inventory-analysis' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><PieChart /> Análise de Inventário</button>
                     <button onClick={() => setActiveTab('critical-stock')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'critical-stock' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><AlertTriangle /> Estoque Crítico</button>
                     <button onClick={() => setActiveTab('users')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'users' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><UsersIcon /> Gestão de Utilizadores</button>
                     <button onClick={() => setActiveTab('stock')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'stock' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><ShoppingCart /> Estoque Geral</button>
@@ -2502,13 +2892,15 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
 
     const fetchUserData = React.useCallback(async () => {
         if (!user) return;
-        const mockInvoices = [
-            { id: 1, amount: '150.75', due_date: '2025-07-10', status: 'paid', paid_at: '2025-07-09' },
-            { id: 2, amount: '88.20', due_date: '2025-08-10', status: 'late', paid_at: null },
-            { id: 3, amount: '210.50', due_date: '2025-06-10', status: 'paid', paid_at: '2025-06-10' }
-        ];
-        setUserInvoices(mockInvoices);
-        
+
+        // Limpa mensagens de erro/sucesso e reseta os formulários
+        setModalError(''); 
+        setModalSuccess(''); 
+        setTicketMessage(''); 
+        setBalanceToAdd(''); 
+        setBalanceReason('');
+
+        // Preenche os dados do formulário principal
         setFormData({ 
             name: user.name || '', 
             email: user.email || '', 
@@ -2519,26 +2911,48 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
         });
         setCreditLimit(user.credit_limit || '');
         setCreditDueDay(user.credit_due_day || '');
-        setModalError(''); setModalSuccess(''); setTicketMessage(''); setBalanceToAdd(''); setBalanceReason('');
-    }, [user]);
+        
+        // Busca as faturas reais do utilizador
+        try {
+            const response = await fetch(`${API_URL}/api/admin/users/${user.id}/invoices`, { 
+                headers: { 'Authorization': `Bearer ${token}` } 
+            });
+            if(response.ok) {
+                const data = await response.json();
+                setUserInvoices(data);
+            } else {
+                // Se falhar, define como um array vazio para não quebrar a interface
+                setUserInvoices([]);
+                console.error("Falha ao buscar faturas do usuário.");
+            }
+        } catch (err) {
+            console.error("Erro na requisição para buscar faturas:", err);
+            setUserInvoices([]);
+        }
+
+    }, [user, token]);
 
     React.useEffect(() => {
-        fetchUserData();
-    }, [user, fetchUserData]);
+        // Este efeito é acionado sempre que o modal é aberto com um novo utilizador
+        if (isOpen) {
+            fetchUserData();
+        }
+    }, [isOpen, fetchUserData]);
 
     if (!isOpen || !user) return null;
 
-    const handleAction = async (action, body, successMessage) => {
+    // Função genérica para tratar ações (salvar, adicionar saldo, etc.)
+    const handleAction = async (action, successMessage) => {
         setIsSaving(true); setModalError(''); setModalSuccess('');
         try {
-            const response = await action(body);
+            const response = await action();
+            const data = await response.json();
             if (!response.ok) {
-                const data = await response.json();
                 throw new Error(data.message || `Falha na operação: ${successMessage}`);
             }
             setModalSuccess(successMessage);
-            onSave();
-            fetchUserData();
+            onSave(); // Recarrega a lista de utilizadores na página principal
+            fetchUserData(); // Recarrega os dados dentro do modal
         } catch (err) {
             setModalError(err.message);
         } finally {
@@ -2555,7 +2969,6 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
-            body,
             'Informações do usuário salvas com sucesso!'
         );
     };
@@ -2568,7 +2981,6 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
-            body,
             `Saldo de R$ ${parseFloat(balanceToAdd).toFixed(2)} adicionado com sucesso!`
         );
     };
@@ -2581,7 +2993,6 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
-            body,
             'Tíquete enviado com sucesso!'
         );
     };
@@ -2595,11 +3006,21 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             }),
-            {},
             `Usuário ${action === 'bloquear' ? 'bloqueado' : 'desbloqueado'} com sucesso!`
         );
     };
 
+    const handleCloseInvoice = () => {
+        if (!window.confirm(`Tem a certeza que quer fechar a fatura atual no valor de R$ ${parseFloat(user.credit_used).toFixed(2)}? Esta ação criará uma pendência e zerará o saldo devedor do utilizador.`)) return;
+
+        handleAction(
+            () => fetch(`${API_URL}/api/admin/users/${user.id}/close-invoice`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            'Fatura fechada com sucesso! O saldo devedor do utilizador foi zerado.'
+        );
+    };
 
     return (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 animate-fade-in-fast">
@@ -2644,6 +3065,17 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                                  {user.is_active ? <><Ban size={18} /> Bloquear Conta</> : <><CheckCircle2 size={18} /> Desbloquear Conta</>}
                              </button>
                         </div>
+
+                         <div className="mb-6 pb-6 border-b border-gray-700">
+                            <h3 className="text-lg font-semibold mb-2 text-purple-400">Ações da Fatura</h3>
+                            <div className="bg-gray-700 p-3 rounded-md">
+                                <p className="text-sm text-gray-300">Saldo devedor atual (próxima fatura):</p>
+                                <p className="font-bold text-xl text-orange-400">R$ {parseFloat(user.credit_used || 0).toFixed(2)}</p>
+                            </div>
+                            <button onClick={handleCloseInvoice} disabled={isSaving || !user.credit_used || parseFloat(user.credit_used) <= 0} className="w-full mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                <FileText size={18} /> Fechar Fatura e Gerar Pendência
+                            </button>
+                        </div>
                         
                         <div className="mb-6 pb-6 border-b border-gray-700">
                              <h3 className="text-lg font-semibold mb-4">Adicionar Saldo</h3>
@@ -2659,7 +3091,6 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                             <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="Digite sua mensagem para o usuário aqui..." className="w-full bg-gray-700 p-2 rounded-md mb-2" rows="3"></textarea>
                             <button onClick={handleSendTicket} disabled={isSaving || !ticketMessage} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500"><Ticket size={18} /> Enviar Tíquete</button>
                         </div>
-
                     </div>
                     {/* Coluna da Direita: Faturas e Histórico */}
                     <div>
@@ -2668,8 +3099,13 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                              {userInvoices.length > 0 ? userInvoices.map(invoice => (
                                  <div key={invoice.id} className="bg-gray-700/50 p-3 rounded-md">
                                      <div className="flex justify-between items-center">
-                                         <p className="font-bold">Fatura de {new Date(invoice.due_date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
-                                         <span className={`px-2 py-1 text-xs rounded-full font-semibold ${invoice.status === 'paid' ? 'bg-green-800 text-green-300' : 'bg-red-800 text-red-300'}`}>{invoice.status === 'late' ? 'Atrasada' : 'Paga'}</span>
+                                         <div>
+                                            <p className="font-bold">Fatura de {new Date(invoice.due_date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                                            <p className="text-sm text-gray-400">Valor: R$ {parseFloat(invoice.amount).toFixed(2)}</p>
+                                         </div>
+                                         <span className={`px-2 py-1 text-xs rounded-full font-semibold ${invoice.status === 'paid' ? 'bg-green-800 text-green-300' : (new Date(invoice.due_date) < new Date() && invoice.status !== 'paid' ? 'bg-red-800 text-red-300' : 'bg-yellow-800 text-yellow-300')}`}>
+                                             {invoice.status === 'paid' ? 'Paga' : (new Date(invoice.due_date) < new Date() ? 'Atrasada' : 'Aberta')}
+                                         </span>
                                      </div>
                                  </div>
                              )) : <p className="text-sm text-gray-500 text-center p-4">Nenhuma fatura encontrada.</p>}
@@ -2682,67 +3118,91 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
 };
 
 const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
-    const [isLoading, setIsLoading] = React.useState(false);
+    // ESTADO: 'summary' irá guardar os dados completos vindos do backend.
+    const [summary, setSummary] = React.useState(null);
+    const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState('');
-    const creditLimit = parseFloat(user?.credit_limit || 0);
-    const creditUsed = parseFloat(user?.credit_used || 0);
-    const availableCredit = creditLimit - creditUsed;
-    const usagePercentage = creditLimit > 0 ? (creditUsed / creditLimit) * 100 : 0;
 
-    const calculateInvoiceTotal = () => {
-        const today = new Date();
-        const dueDate = new Date();
-        dueDate.setDate(user.credit_due_day || 31);
-
-        let total = creditUsed;
-        const fees = total * 0.10;
-        let interest = 0;
-
-        if (today > dueDate) {
-            const diffTime = Math.abs(today - dueDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            interest = total * 0.025 * diffDays;
-        }
-
-        return {
-            base: creditUsed,
-            fees,
-            interest,
-            total: total + fees + interest
+    // EFEITO: Busca os dados do backend assim que a página carrega.
+    React.useEffect(() => {
+        const fetchSummary = async () => {
+            setIsLoading(true);
+            const token = localStorage.getItem('token');
+            try {
+                // Chama a nova rota '/api/credit/summary'
+                const response = await fetch(`${API_URL}/api/credit/summary`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Falha ao carregar dados de crédito.');
+                const data = await response.json();
+                setSummary(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setIsLoading(false);
+            }
         };
-    };
-
-    const invoice = calculateInvoiceTotal();
+        fetchSummary();
+    }, []); // O array vazio [] garante que isto só executa uma vez.
 
     const handlePayInvoice = async () => {
-    setIsLoading(true);
-    setError('');
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/api/credit/pay-invoice`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+        setIsLoading(true);
+        setError('');
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/credit/pay-invoice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Falha ao gerar PIX da fatura.');
             }
-        });
+            
+            setPaymentData(data);
+            setPaymentMethod('pix');
+            setPage('payment');
 
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Falha ao gerar PIX da fatura.');
+        } catch (err) {
+            setError(err.message);
+            alert(`Erro na comunicação com o servidor: ${err.message}`);
+        } finally {
+            setIsLoading(false);
         }
-        
-        setPaymentData(data);
-        setPaymentMethod('pix');
-        setPage('payment');
+    };
 
-    } catch (err) {
-        setError(err.message);
-        alert(`Erro na comunicação com o servidor: ${err.message}`);
-    } finally {
-        setIsLoading(false);
+    // Estado de Carregamento
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex justify-center items-center">
+                <Loader2 className="animate-spin text-orange-400" size={48} />
+            </div>
+        );
     }
-};
+    
+    // Estado de Erro
+    if (error || !summary) {
+        return (
+             <div className="min-h-screen bg-gray-900 text-white">
+                <header className="bg-gray-800 shadow-md">
+                    <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+                        <button onClick={() => setPage('home')} className="text-orange-400 hover-text-orange-300"><ArrowLeft size={24} /></button>
+                        <h1 className="text-2xl font-bold">Meu Crédito SmartFridge</h1>
+                    </div>
+                </header>
+                 <main className="container mx-auto p-4 md:p-8 max-w-2xl text-center">
+                     <p className="text-red-400">{error || "Não foi possível carregar as informações."}</p>
+                 </main>
+             </div>
+        );
+    }
+
+    // Calcula a percentagem de uso com base nos dados do backend
+    const usagePercentage = summary.creditLimit > 0 ? (summary.creditUsed / summary.creditLimit) * 100 : 0;
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -2763,15 +3223,17 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                              <CreditCard size={32} />
                          </div>
                          <div className="mt-6">
-                             <p className="text-sm opacity-80">Fatura Atual</p>
-                             <p className="text-3xl font-bold">R$ {creditUsed.toFixed(2).replace('.', ',')}</p>
+                             <p className="text-sm opacity-80">Dívida Total (Faturas + Gastos)</p>
+                             {/* Mostra a dívida total */}
+                             <p className="text-3xl font-bold">R$ {summary.creditUsed.toFixed(2).replace('.', ',')}</p>
                          </div>
                          <div className="mt-2 flex justify-between items-end">
                              <div>
                                  <p className="text-xs opacity-80">Limite Disponível</p>
-                                 <p className="font-semibold">R$ {availableCredit.toFixed(2).replace('.', ',')}</p>
+                                 {/* Mostra o limite disponível real */}
+                                 <p className="font-semibold">R$ {summary.availableCredit.toFixed(2).replace('.', ',')}</p>
                              </div>
-                             <p className="text-xs opacity-80">Vencimento: Dia {user.credit_due_day || 'N/D'}</p>
+                             <p className="text-xs opacity-80">Vencimento: {summary.dueDate ? new Date(summary.dueDate).toLocaleDateString('pt-BR') : 'N/D'}</p>
                          </div>
                      </div>
                      <div className="mt-4">
@@ -2779,23 +3241,23 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                              <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${usagePercentage}%` }}></div>
                          </div>
                          <div className="flex justify-between text-xs mt-1 text-gray-400">
-                             <span>Gasto: R$ {creditUsed.toFixed(2).replace('.', ',')}</span>
-                             <span>Limite Total: R$ {creditLimit.toFixed(2).replace('.', ',')}</span>
+                             <span>Gasto Total: R$ {summary.creditUsed.toFixed(2).replace('.', ',')}</span>
+                             <span>Limite Total: R$ {summary.creditLimit.toFixed(2).replace('.', ',')}</span>
                          </div>
                      </div>
                 </div>
 
                 <div className="bg-gray-800 p-6 rounded-lg mt-8">
                     <h3 className="text-xl font-bold mb-4">Pagar Fatura</h3>
-                    {creditUsed > 0 ? (
+                    {/* Verifica se o total a pagar (com taxas) é maior que zero */}
+                    {summary.totalToPay > 0 ? (
                         <>
                             <div className="space-y-2 text-gray-300 mb-4 border-b border-gray-700 pb-4">
-                                <p className="flex justify-between"><span>Valor Gasto:</span> <span>R$ {invoice.base.toFixed(2).replace('.', ',')}</span></p>
-                                <p className="flex justify-between"><span>Taxa de Serviço:</span> <span>R$ {invoice.fees.toFixed(2).replace('.', ',')}</span></p>
-                                {invoice.interest > 0 && (
-                                     <p className="flex justify-between text-red-400"><span>Juros por Atraso:</span> <span>R$ {invoice.interest.toFixed(2).replace('.', ',')}</span></p>
-                                )}
-                                <p className="flex justify-between text-white font-bold text-lg mt-2 pt-2 border-t border-gray-600"><span>Total a Pagar:</span> <span>R$ {invoice.total.toFixed(2).replace('.', ',')}</span></p>
+                                {/* Mostra o detalhe dos valores */}
+                                <p className="flex justify-between"><span>Faturas Pendentes:</span> <span>R$ {summary.pendingInvoicesAmount.toFixed(2).replace('.', ',')}</span></p>
+                                <p className="flex justify-between"><span>Gastos do ciclo atual:</span> <span>R$ {summary.currentSpending.toFixed(2).replace('.', ',')}</span></p>
+                                <p className="flex justify-between"><span>Taxa de Serviço (10%):</span> <span>R$ {summary.serviceFee.toFixed(2).replace('.', ',')}</span></p>
+                                <p className="flex justify-between text-white font-bold text-lg mt-2 pt-2 border-t border-gray-600"><span>Total a Pagar:</span> <span>R$ {summary.totalToPay.toFixed(2).replace('.', ',')}</span></p>
                             </div>
                             <button
                                 onClick={handlePayInvoice}
@@ -2916,6 +3378,41 @@ const HistoryPage = ({ setPage, token, showToast }) => {
     );
 };
 
+const Footer = () => {
+    return (
+        <footer className="bg-gray-800 border-t border-gray-700 mt-12">
+            <div className="container mx-auto px-4 md:px-8 py-8 text-center">
+                
+                {/* PARTE DE CIMA: Logo e Links */}
+                <div className="flex flex-col items-center gap-6 mb-6">
+                    {/* Logo */}
+                    <div className="flex items-baseline">
+                        <span className="text-xl font-bold text-orange-500">Smart</span>
+                        <span className="text-xl font-light text-white">Fridge</span>
+                    </div>
+
+                    {/* Links Sociais e de Suporte (Alinhados lado a lado) */}
+                    <div className="flex flex-row flex-wrap justify-center gap-6 md:gap-8 items-center text-gray-300">
+                        <a href="https://instagram.com/seu_usuario_instagram" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
+                            <Instagram size={20} />
+                            <span>Instagram</span>
+                        </a>
+                        <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
+                            <MessageSquare size={20} />
+                            <span>Suporte via WhatsApp</span>
+                        </a>
+                    </div>
+                </div>
+
+                {/* PARTE DE BAIXO: Direitos Autorais (Separado por uma linha) */}
+                <div className="border-t border-gray-700 pt-6">
+                    <p className="text-sm text-gray-400">&copy; {new Date().getFullYear()} SmartFridge. Todos os direitos reservados.</p>
+                </div>
+
+            </div>
+        </footer>
+    );
+};
 
 export default function App() {
     const [page, setPage] = React.useState('login');
@@ -2928,17 +3425,12 @@ export default function App() {
     const [fridgeId, setFridgeId] = React.useState(null);
     const [toast, setToast] = React.useState({ show: false, message: '' });
 
+    // Armazena a lista de condomínios para evitar múltiplas chamadas à API
+    const [allCondos, setAllCondos] = React.useState([]);
+
     const showToast = (message) => {
         setToast({ show: true, message });
         setTimeout(() => setToast({ show: false, message: '' }), 3000);
-    };
-
-    const handleCondoSelect = (selectedCondo) => {
-        localStorage.setItem('savedFridgeId', selectedCondo.fridge_id);
-        // Atualiza o utilizador na sessão para usar o novo condoId
-        setUser(prevUser => ({ ...prevUser, condoId: selectedCondo.id }));
-        setFridgeId(selectedCondo.fridge_id);
-        setPage('home');
     };
 
     const updateUserBalance = React.useCallback(async () => {
@@ -2955,72 +3447,82 @@ export default function App() {
         }
     }, []);
 
-    const handleLogin = async (token, userData) => {
-        localStorage.setItem('token', token);
-        setUser(userData);
-        await updateUserBalance();
+    // --- LÓGICA DE LOGIN E SESSÃO REESCRITA ---
 
-        const savedFridgeId = localStorage.getItem('savedFridgeId');
-        if (savedFridgeId) {
-            try {
-                const validationResponse = await fetch(`${API_URL}/api/public/validate-fridge`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ condoId: userData.condoId, fridgeId: savedFridgeId })
-                });
-                const validationData = await validationResponse.json();
-                if (validationData.valid) {
-                    setFridgeId(savedFridgeId);
-                    setPage('home');
-                    return;
-                } else {
-                    localStorage.removeItem('savedFridgeId');
-                }
-            } catch (error) {
-                console.error("Falha ao validar geladeira salva:", error);
-                localStorage.removeItem('savedFridgeId');
-            }
-        }
-        setPage('fridgeSelection');
-    };
-    
     const handleLogout = () => {
         setUser(null);
         setCart([]);
         setFridgeId(null);
         localStorage.removeItem('token');
         localStorage.removeItem('adminToken');
-        localStorage.removeItem('savedFridgeId');
+        localStorage.removeItem('savedFridgeId'); // Limpa por segurança
         setPage('login');
     };
+    
+    // Função para definir a geladeira e ir para a home
+    const setFridgeAndGoHome = (userData, condos) => {
+        const userCondo = condos.find(c => c.id === userData.condoId);
+        if (userCondo && userCondo.fridge_id) {
+            setFridgeId(userCondo.fridge_id);
+            setPage('home');
+        } else {
+            // Se o condomínio do utilizador não tiver uma geladeira associada,
+            // força a seleção manual para evitar erros.
+            console.error("Condomínio do utilizador não tem geladeira associada.");
+            setPage('fridgeSelection');
+        }
+    };
+    
+    // handleLogin simplificado para o novo fluxo
+    const handleLogin = async (token, userData) => {
+        localStorage.setItem('token', token);
+        setUser(userData);
+        await updateUserBalance();
+        setFridgeAndGoHome(userData, allCondos);
+    };
 
+    // useEffect principal simplificado para o novo fluxo
     React.useEffect(() => {
-        const validateToken = async () => {
-            const token = localStorage.getItem('token');
-            const adminToken = localStorage.getItem('adminToken');
-            
-            if (adminToken) {
-                setUser({ name: "Admin" });
-                setPage('admin');
-            } else if (token) {
-                try {
+        const initializeApp = async () => {
+            // Busca todos os condomínios uma vez no arranque
+            try {
+                const condosResponse = await fetch(`${API_URL}/api/public/condominiums`);
+                const condosData = await condosResponse.json();
+                setAllCondos(condosData);
+
+                const token = localStorage.getItem('token');
+                const adminToken = localStorage.getItem('adminToken');
+                
+                if (adminToken) {
+                    setUser({ name: "Admin" });
+                    setPage('admin');
+                } else if (token) {
                     const meResponse = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                     if (meResponse.ok) {
                         const userData = await meResponse.json();
-                        handleLogin(token, userData);
+                        setUser(userData);
+                        // Usa a função centralizada para ir diretamente para a home
+                        setFridgeAndGoHome(userData, condosData);
                     } else {
                         handleLogout();
                     }
-                } catch (error) {
-                    console.error("Falha ao validar token", error);
-                    handleLogout();
                 }
+            } catch (error) {
+                console.error("Falha ao inicializar a aplicação:", error);
+                handleLogout();
+            } finally {
+                setIsInitializing(false);
             }
-            setIsInitializing(false);
         };
-        validateToken();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); 
+
+        initializeApp();
+    }, []);
+
+     const handleCondoSelect = (selectedCondo) => {
+        setUser(prevUser => ({ ...prevUser, condoId: selectedCondo.id }));
+        setFridgeId(selectedCondo.fridge_id);
+        setPage('home');
+    };
 
     const handleAdminLogin = () => { setUser({ name: "Admin" }); setPage('admin'); };
     const handleRegister = (token, userData) => { 
@@ -3045,31 +3547,56 @@ export default function App() {
         return <div className="min-h-screen bg-gray-900 flex justify-center items-center"><Loader2 className="w-16 h-16 text-orange-500 animate-spin" /></div>;
     }
 
+    const pagesWithoutFooter = [
+        'login', 
+        'register', 
+        'forgot-password', 
+        'fridgeSelection', 
+        'payment', 
+        'card-deposit', 
+        'awaitingUnlock', 
+        'enjoy',
+        'depositSuccess',
+        'admin'
+    ];
+
+    if (isInitializing) {
+        return <div className="min-h-screen bg-gray-900 flex justify-center items-center"><Loader2 className="w-16 h-16 text-orange-500 animate-spin" /></div>;
+    }
+
     return (
         <>
             <Toast show={toast.show} message={toast.message} />
-            {(() => {
-                switch (page) {
-                    case 'register': return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setPage('login')} />;
-                    case 'fridgeSelection': return user ? <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'home': return user && fridgeId ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} fridgeId={fridgeId} /> : <FridgeSelectionPage setFridgeId={setFridgeId} setPage={setPage} user={user} onLogout={handleLogout} />;
-                    case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'awaitingUnlock': return <AwaitingUnlockPage setPage={setPage} paymentData={paymentData} />;
-                    case 'enjoy': return <EnjoyPage setPage={setPage} />;
-                    case 'my-account': return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'changeCondo': return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
-                    case 'admin': return <AdminDashboard onLogout={handleLogout} />;
-                    case 'wallet': return user ? <WalletPage user={user} setPage={setPage} setPaymentData={setPaymentData} setDepositData={setDepositData} setPaymentMethod={setPaymentMethod} updateUserBalance={updateUserBalance} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={() => { showToast('Depósito realizado com sucesso!'); updateUserBalance(); }} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'my-tickets': return user ? <MyTicketsPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'credit': return user ? <CreditPage user={user} setPage={setPage} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'history': return user ? <HistoryPage setPage={setPage} token={localStorage.getItem('token')} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                    case 'login':
-                    default: return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                }
-            })()}
+            <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+                <main className="flex-grow">
+                    {(() => {
+                        switch (page) {
+                            case 'register': return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setPage('login')} />;
+                            case 'fridgeSelection': return user ? <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'home': return user && fridgeId ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} fridgeId={fridgeId} /> : <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} />;
+                            case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} fridgeId={fridgeId}/> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'awaitingUnlock': return <AwaitingUnlockPage setPage={setPage} />;
+                            case 'enjoy': return <EnjoyPage setPage={setPage} />;
+                            case 'my-account': return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'changeCondo': return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
+                            case 'admin': return <AdminDashboard onLogout={handleLogout} />;
+                            case 'wallet': return user ? <WalletPage user={user} setPage={setPage} setPaymentData={setPaymentData} setDepositData={setDepositData} setPaymentMethod={setPaymentMethod} updateUserBalance={updateUserBalance} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={() => { showToast('Depósito realizado com sucesso!'); updateUserBalance(); }} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'my-tickets': return user ? <MyTicketsPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'credit': return user ? <CreditPage user={user} setPage={setPage} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'depositSuccess': return user ? <DepositSuccessPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'history': return user ? <HistoryPage setPage={setPage} token={localStorage.getItem('token')} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                            case 'login':
+                            default: return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                        }
+                    })()}
+                </main>
+                
+                {/* Lógica para adicionar o rodapé apenas nas páginas certas */}
+                {!pagesWithoutFooter.includes(page) && <Footer />}
+            </div>
         </>
     )
 }
