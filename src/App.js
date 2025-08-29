@@ -1998,35 +1998,74 @@ const UserManagementPage = ({ condominiums, token }) => {
     );
 };
 
-const CondoManager = ({ condominiums, onEdit, onDelete, onAddNew }) => (
-    <div>
-        <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Gestão de Condomínios</h2>
-            {/* CORREÇÃO APLICADA AQUI: Usamos uma arrow function para não passar o evento */}
-            <button onClick={() => onAddNew()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-                <PlusCircle size={20} /> Novo Condomínio
-            </button>
-        </div>
-        <div className="bg-gray-800 rounded-lg overflow-x-auto">
-            <table className="w-full text-left">
-                <thead className="bg-gray-700"><tr><th className="p-4">Nome</th><th className="p-4">ID da Geladeira</th><th className="p-4">Síndico</th><th className="p-4">Ações</th></tr></thead>
-                <tbody>
-                    {condominiums.map(condo => (
-                        <tr key={condo.id} className="border-b border-gray-700">
-                            <td className="p-4">{condo.name}</td>
-                            <td className="p-4 font-mono">{condo.fridge_id}</td>
-                            <td className="p-4">{condo.syndic_name}</td>
-                            <td className="p-4 flex gap-2">
-                                <button onClick={() => onEdit(condo)} className="text-blue-400 hover:text-blue-300 p-2"><Edit size={18} /></button>
-                                <button onClick={() => onDelete(condo.id)} className="text-red-400 hover:text-red-300 p-2"><Trash2 size={18} /></button>
-                            </td>
+// App.js -> Substitua o seu CondoManager atual por este
+
+const CondoManager = ({ condominiums, onEdit, onDelete, onAddNew, token }) => {
+    const handleRemoteUnlock = async (fridgeId) => {
+        if (!fridgeId) {
+            alert('Este condomínio não tem um ID de geladeira definido.');
+            return;
+        }
+        if (window.confirm(`Tem a certeza que quer destravar remotamente a geladeira ${fridgeId}?`)) {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/fridges/${fridgeId}/unlock`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Falha ao enviar comando.');
+                alert('Comando de desbloqueio enviado com sucesso!');
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+    };
+
+    return (
+        <div>
+            {/* --- BOTÃO "NOVO CONDOMÍNIO" RESTAURADO --- */}
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Gestão de Condomínios</h2>
+                <button onClick={() => onAddNew()} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+                    <PlusCircle size={20} /> Novo Condomínio
+                </button>
+            </div>
+            <div className="bg-gray-800 rounded-lg overflow-x-auto">
+                <table className="w-full text-left">
+                    {/* --- CABEÇALHOS DA TABELA RESTAURADOS --- */}
+                    <thead className="bg-gray-700">
+                        <tr>
+                            <th className="p-4">Nome</th>
+                            <th className="p-4">ID da Geladeira</th>
+                            <th className="p-4">Síndico</th>
+                            <th className="p-4">Ações</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {condominiums.map(condo => (
+                            <tr key={condo.id} className="border-b border-gray-700">
+                                {/* --- DADOS DO CONDOMÍNIO RESTAURADOS --- */}
+                                <td className="p-4">{condo.name}</td>
+                                <td className="p-4 font-mono">{condo.fridge_id}</td>
+                                <td className="p-4">{condo.syndic_name}</td>
+                                <td className="p-4 flex gap-2">
+                                    <button onClick={() => handleRemoteUnlock(condo.fridge_id)} className="text-green-400 hover:text-green-300 p-2" title="Destravar Remotamente">
+                                        <KeyRound size={18} />
+                                    </button>
+                                    <button onClick={() => onEdit(condo)} className="text-blue-400 hover:text-blue-300 p-2" title="Editar">
+                                        <Edit size={18} />
+                                    </button>
+                                    <button onClick={() => onDelete(condo.id)} className="text-red-400 hover:text-red-300 p-2" title="Apagar">
+                                        <Trash2 size={18} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-);
+    );
+};
     
 
 const StockManagement = ({ condominiums, token }) => {
@@ -3397,7 +3436,7 @@ const Footer = () => {
                             <Instagram size={20} />
                             <span>Instagram</span>
                         </a>
-                        <a href="https://wa.me/5561982037442" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
+                        <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
                             <MessageSquare size={20} />
                             <span>Suporte via WhatsApp</span>
                         </a>
