@@ -3518,6 +3518,11 @@ export default function App() {
         initializeApp();
     }, []);
     
+     const handleCondoSelect = (selectedCondo) => {
+        setUser(prevUser => ({ ...prevUser, condoId: selectedCondo.id }));
+        setFridgeId(selectedCondo.fridge_id);
+        setPage('home');
+    };
 
     const handleAdminLogin = () => { setUser({ name: "Admin" }); setPage('admin'); };
     const handleRegister = (token, userData) => { 
