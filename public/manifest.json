@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
   "short_name": "React App",
   "name": "Create React App Sample",
+=======
+  "short_name": "SmartFridge",
+  "name": "Instale o App da SmartFridge e economize tempo!",
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +25,11 @@
   ],
   "start_url": ".",
   "display": "standalone",
+<<<<<<< HEAD
   "theme_color": "#000000",
   "background_color": "#ffffff"
+=======
+  "theme_color": "#111827",
+  "background_color": "#111827"
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 }

@@ -12,8 +12,11 @@
     "react-dom": "^18.3.1",
     "react-qr-code": "^2.0.16",
     "react-scripts": "5.0.1",
+<<<<<<< HEAD
     "react-slick": "^0.31.0",
     "slick-carousel": "^1.8.1",
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     "web-vitals": "^2.1.4"
   },
   "scripts": {

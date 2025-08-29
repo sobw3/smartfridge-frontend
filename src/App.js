@@ -1,9 +1,13 @@
 import React from 'react';
 // Ícones adicionados: History para o novo histórico, FileText para faturas
+<<<<<<< HEAD
 import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText, Instagram, MessageSquare, PieChart, LayoutDashboard } from 'lucide-react';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick"; // E adicione esta também
+=======
+import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText } from 'lucide-react';
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
 // --- CONFIGURAÇÃO DA API ---
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -506,6 +510,7 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
     );
 };
 
+<<<<<<< HEAD
 const BannerCarousel = () => {
     // Configurações do carrossel
     const settings = {
@@ -546,6 +551,11 @@ const BannerCarousel = () => {
 const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
     const [showMenu, setShowMenu] = React.useState(false);
     const [products, setProducts] = React.useState({});
+=======
+const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
+    const [showMenu, setShowMenu] = React.useState(false);
+    const [products, setProducts] = React.useState([]);
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState('');
     const [condos, setCondos] = React.useState([]);
@@ -575,8 +585,12 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
             try {
                 const response = await fetch(`${API_URL}/api/products?condoId=${user.condoId}`);
                 if (!response.ok) { const errData = await response.json(); throw new Error(errData.message || 'Falha ao buscar produtos.'); }
+<<<<<<< HEAD
                 const data = await response.json(); 
                 setProducts(data);
+=======
+                const data = await response.json(); setProducts(data);
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -655,8 +669,11 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
         </div>
     );
 
+<<<<<<< HEAD
     const productCategories = Object.keys(products);
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     return (
         <div className="min-h-screen bg-gray-900 text-white">
             <SideMenu />
@@ -721,6 +738,7 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                         <input type="text" placeholder="Buscar um produto..." className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onFocus={() => setIsSearchFocused(true)} onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)} />
                         {isSearchFocused && searchQuery && (
                             <div className="absolute top-full mt-2 w-full bg-gray-700 rounded-lg shadow-lg z-40 max-h-60 overflow-y-auto">
+<<<<<<< HEAD
                                 {isSearchLoading ? (
                                     <div className="p-4 text-center text-gray-400">A procurar...</div>
                                 ) : searchResults.length > 0 ? (
@@ -733,6 +751,9 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                                 ) : (
                                     <div className="p-4 text-center text-gray-400">Nenhum resultado encontrado.</div>
                                 )}
+=======
+                                {/* Lógica de resultados da pesquisa */}
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                             </div>
                         )}
                     </div>
@@ -742,6 +763,7 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                 <div className="bg-gray-800 p-4 rounded-lg mb-8 flex justify-between items-center flex-wrap gap-4">
                     <div>
                         <h1 className="text-xl md:text-2xl">Olá, <span className="font-bold text-orange-400">{user?.name}</span>!</h1>
+<<<<<<< HEAD
                         <p className="text-gray-300">Confira os produtos disponíveis no <span className="font-semibold">{currentCondo?.name || '...'}</span>.</p>
                     </div>
                 </div>
@@ -800,12 +822,62 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
                                 </div>
                             </div>
                         )) : (<div className="text-center p-8 bg-gray-800 text-gray-400 rounded-lg"><p className="text-xl font-semibold">Nenhum produto encontrado!</p><p>Parece que não há produtos disponíveis neste condomínio no momento.</p></div>)}
+=======
+                        <p className="text-gray-300">Você está vendo produtos no <span className="font-semibold">{currentCondo?.name || '...'}</span>.</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-gray-400 text-sm">Geladeira ID</p>
+                        <p className="font-mono text-lg bg-gray-900 px-2 py-1 rounded">{fridgeId}</p>
+                    </div>
+                </div>
+                {isLoading && (<div className="flex justify-center items-center h-64"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>)}
+                {error && (<div className="text-center p-8 bg-red-900/20 text-red-400 rounded-lg"><p>Oops! Algo deu errado.</p><p className="text-sm">{error}</p></div>)}
+                {!isLoading && !error && (
+                    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                        {products.length > 0 ? products.map(product => (
+                            <div key={product.id} className="bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col group transition-all transform hover:-translate-y-1 hover:shadow-orange-500/20">
+                                <div className="relative">
+                                    {product.promotion_end_date && (
+                                        <div className="absolute top-2 left-2 bg-black/70 text-white p-2 rounded-lg flex items-center gap-2 z-10">
+                                            <Flame size={16} className="text-orange-400" />
+                                            <div>
+                                                <p className="text-xs font-bold leading-tight">PROMOÇÃO</p>
+                                                <CountdownTimer endDate={product.promotion_end_date} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <img src={product.image_url || `https://placehold.co/300x300/374151/ffffff?text=${product.name.replace(' ', '+')}`} alt={product.name} className="w-full h-40 md:h-48 object-cover" />
+                                </div>
+                                <div className="p-4 flex flex-col flex-grow">
+                                    <h3 className="font-semibold text-base flex-grow">{product.name}</h3>
+                                    <div className="mt-2">
+                                        {product.original_price ? (
+                                            <div>
+                                                <p className="text-sm text-gray-400 line-through">R$ {parseFloat(product.original_price).toFixed(2).replace('.', ',')}</p>
+                                                <p className="text-xl font-bold text-orange-400">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
+                                            </div>
+                                        ) : (
+                                            <p className="text-lg font-bold text-orange-400">R$ {parseFloat(product.sale_price).toFixed(2).replace('.', ',')}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="p-2 grid grid-cols-2 gap-2">
+                                    <button onClick={() => addToCart(product)} className="w-full bg-orange-500/20 text-orange-400 hover:bg-orange-500 hover:text-white text-xs font-bold py-2 px-2 rounded-md transition">Adicionar</button>
+                                    <button onClick={() => { addToCart(product); setPage('cart'); }} className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold py-2 px-2 rounded-md transition">Comprar</button>
+                                </div>
+                            </div>
+                        )) : (<div className="col-span-full text-center p-8 bg-gray-800 text-gray-400 rounded-lg"><p className="text-xl font-semibold">Nenhum produto encontrado!</p><p>Parece que não há produtos disponíveis neste condomínio no momento.</p></div>)}
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                     </div>
                 )}
             </main>
         </div>
     );
+<<<<<<< HEAD
 };
+=======
+}
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
 const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMethod, onPaymentSuccess, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
@@ -1663,6 +1735,7 @@ const DailyPromotionsWidget = ({ token }) => {
     );
 };
 
+<<<<<<< HEAD
 // App.js -> Substitua o seu EntradasVendasPage por este
 
 const EntradasVendasPage = ({ condominiums, token }) => {
@@ -1670,18 +1743,28 @@ const EntradasVendasPage = ({ condominiums, token }) => {
     const [reportData, setReportData] = React.useState({ log: [], summary: {}, pagination: {} });
     const [expandedRow, setExpandedRow] = React.useState(null); // Estado para controlar qual linha está expandida
 
+=======
+const EntradasVendasPage = ({ condominiums, token }) => {
+    const [logData, setLogData] = React.useState({ log: [], pagination: {} });
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const getTodayInBrasilia = () => {
         const date = new Date();
         const [day, month, year] = date.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" }).split('/');
         return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     };
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const [filterInputs, setFilterInputs] = React.useState({ condoId: condominiums[0]?.id || '', startDate: '', endDate: '' });
     const [activeFilters, setActiveFilters] = React.useState({ condoId: condominiums[0]?.id || '', startDate: '', endDate: '' });
     const [currentPage, setCurrentPage] = React.useState(1);
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const fetchLogData = React.useCallback(async (page = 1) => {
         if (!activeFilters.condoId) return;
         setIsLoading(true); setError(''); setCurrentPage(page);
@@ -1692,17 +1775,28 @@ const EntradasVendasPage = ({ condominiums, token }) => {
             const response = await fetch(`${API_URL}/api/admin/sales?${params.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!response.ok) throw new Error('Falha ao buscar dados de vendas e entradas.');
             const data = await response.json();
+<<<<<<< HEAD
             setReportData({ log: data.log || [], summary: data.summary || {}, pagination: data.pagination || {} });
         } catch (err) {
             setError(err.message);
             setReportData({ log: [], summary: {}, pagination: {} });
+=======
+            setLogData({ log: data.log || [], pagination: data.pagination || {} });
+        } catch (err) {
+            setError(err.message);
+            setLogData({ log: [], pagination: {} });
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
         } finally {
             setIsLoading(false);
         }
     }, [activeFilters, token]);
+<<<<<<< HEAD
 
     React.useEffect(() => { fetchLogData(currentPage); }, [activeFilters, currentPage, fetchLogData]);
 
+=======
+    React.useEffect(() => { fetchLogData(currentPage); }, [activeFilters, currentPage, fetchLogData]);
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const handleInputChange = (e) => { setFilterInputs(prev => ({ ...prev, [e.target.name]: e.target.value })); };
     const handleApplyFilters = () => { setCurrentPage(1); setActiveFilters(filterInputs); };
     const handleFilterToday = () => {
@@ -1712,6 +1806,7 @@ const EntradasVendasPage = ({ condominiums, token }) => {
         setActiveFilters(newFilters);
         setCurrentPage(1);
     };
+<<<<<<< HEAD
 
     const toggleRow = (id) => {
         setExpandedRow(prev => prev === id ? null : id);
@@ -1725,6 +1820,14 @@ const EntradasVendasPage = ({ condominiums, token }) => {
         <div>
             <h2 className="text-3xl font-bold mb-6">Relatório de Vendas</h2>
             
+=======
+    const totalSales = logData.log.filter(item => item.type === 'Venda').reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    const totalDeposits = logData.log.filter(item => item.type === 'Depósito').reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    return (
+        <div>
+            <h2 className="text-3xl font-bold mb-6">Extrato de Entradas e Vendas</h2>
+            <div className="mb-8"><DailyPromotionsWidget token={token} /></div>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             <div className="bg-gray-800 p-4 rounded-lg mb-6 flex flex-wrap items-end gap-4">
                 <div><label className="text-sm text-gray-400 mb-1 block">Condomínio</label><select name="condoId" onChange={handleInputChange} value={filterInputs.condoId} className="bg-gray-700 border border-gray-600 rounded-lg py-2 px-3">{condominiums.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                 <div><label className="text-sm text-gray-400 mb-1 block">De</label><input name="startDate" type="date" onChange={handleInputChange} value={filterInputs.startDate} className="bg-gray-700 border border-gray-600 rounded-lg py-2 px-3" /></div>
@@ -1732,6 +1835,7 @@ const EntradasVendasPage = ({ condominiums, token }) => {
                 <button onClick={handleFilterToday} className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">Hoje</button>
                 <button onClick={handleApplyFilters} className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><Filter size={16} /> Aplicar</button>
             </div>
+<<<<<<< HEAD
 
             {/* --- CARDS DE RESUMO --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -1780,6 +1884,30 @@ const EntradasVendasPage = ({ condominiums, token }) => {
                         </tbody>
                     </table>
                     <Pagination currentPage={currentPage} totalPages={Math.ceil((reportData?.pagination?.total || 0) / (reportData?.pagination?.limit || 10))} onPageChange={fetchLogData} />
+=======
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <AdminStatCard icon={<ShoppingCart size={32} />} label="Total em Vendas (no período)" value={`R$ ${totalSales.toFixed(2).replace('.', ',')}`} colorClass="text-green-400" />
+                <AdminStatCard icon={<ArrowDownToLine size={32} />} label="Total em Depósitos (no período)" value={`R$ ${totalDeposits.toFixed(2).replace('.', ',')}`} colorClass="text-blue-400" />
+            </div>
+            <h3 className="text-2xl font-bold mb-4">Histórico de Transações</h3>
+            {isLoading ? <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div> : error ? <p className="text-red-400">{error}</p> : (
+                <div className="bg-gray-800 rounded-lg overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-700"><tr><th className="p-4">Tipo</th><th className="p-4">Cliente</th><th className="p-4">Valor</th><th className="p-4">Método</th><th className="p-4">Data</th></tr></thead>
+                        <tbody>
+                            {logData.log?.length > 0 ? logData.log.map(item => (
+                                <tr key={`${item.type}-${item.id}`} className="border-b border-gray-700 hover:bg-gray-700/50">
+                                    <td className="p-4"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.type === 'Venda' ? 'bg-green-800 text-green-300' : 'bg-blue-800 text-blue-300'}`}>{item.type}</span></td>
+                                    <td className="p-4">{item.user_name} <span className="text-gray-400 text-sm">({item.user_cpf})</span></td>
+                                    <td className="p-4 font-bold text-orange-400">R$ {parseFloat(item.amount).toFixed(2).replace('.', ',')}</td>
+                                    <td className="p-4 capitalize">{item.payment_method || 'N/A'}</td>
+                                    <td className="p-4 text-sm">{new Date(item.created_at).toLocaleString('pt-BR')}</td>
+                                </tr>
+                            )) : (<tr><td colSpan="5" className="text-center p-8 text-gray-400">Nenhuma transação encontrada para os filtros selecionados.</td></tr>)}
+                        </tbody>
+                    </table>
+                    <Pagination currentPage={currentPage} totalPages={Math.ceil((logData?.pagination?.total || 0) / (logData?.pagination?.limit || 10))} onPageChange={fetchLogData} />
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                 </div>
             )}
         </div>
@@ -2284,6 +2412,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
                         <button type="button" onClick={onClose} className="bg-gray-600 hover:bg-gray-500 py-2 px-4 rounded-md">Cancelar</button>
                         <button type="submit" className="bg-green-600 hover:bg-green-700 py-2 px-4 rounded-md">Salvar Produto</button>
                     </div>
+<<<<<<< HEAD
                     <div className="md:col-span-2"><label className="text-sm text-gray-400">Categoria</label>
     <select name="category" value={formData.category || ''} onChange={handleChange} className="w-full bg-gray-700 p-2 rounded-md mt-1">
         <option value="">Nenhuma</option>
@@ -2292,6 +2421,8 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
         <option value="Doces">Doces</option>
     </select>
 </div>
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                 </form>
             </div>
         </div>
@@ -2301,12 +2432,19 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
 const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSelected }) => {
     const [condos, setCondos] = React.useState([]);
     const [selectedCondoId, setSelectedCondoId] = React.useState('');
+<<<<<<< HEAD
     // --- ADICIONADO: Estado para controlar a checkbox ---
     const [rememberSelection, setRememberSelection] = React.useState(true);
     const [isLoading, setIsLoading] = React.useState(true);
     const [error, setError] = React.useState('');
 
     React.useEffect(() => {
+=======
+    const [isLoading, setIsLoading] = React.useState(true); // Inicia como true para carregar os condomínios
+    const [error, setError] = React.useState('');
+
+        React.useEffect(() => {
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
         const fetchCondos = async () => {
             setIsLoading(true);
             try {
@@ -2314,6 +2452,10 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                 if (!response.ok) throw new Error('Não foi possível carregar a lista de condomínios.');
                 const data = await response.json();
                 setCondos(data);
+<<<<<<< HEAD
+=======
+                // Pré-seleciona o condomínio do utilizador, se existir na lista
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                 if (user?.condoId) {
                     setSelectedCondoId(user.condoId);
                 }
@@ -2338,6 +2480,7 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
             return;
         }
 
+<<<<<<< HEAD
         const selectedCondo = condos.find(c => c.id === parseInt(selectedCondoId));
         if (!selectedCondo || !selectedCondo.fridge_id) {
             setError('Este condomínio não tem uma geladeira associada ou é inválido.');
@@ -2347,6 +2490,18 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
 
         try {
             const token = localStorage.getItem('token');
+=======
+         const selectedCondo = condos.find(c => c.id === parseInt(selectedCondoId));
+        if (!selectedCondo || !selectedCondo.fridge_id) {
+             setError('Este condomínio não tem uma geladeira associada ou é inválido.');
+             setIsLoading(false);
+             return;
+        }
+
+                try {
+            const token = localStorage.getItem('token');
+            // Valida usando o ID do condomínio e o ID da geladeira selecionados
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             const response = await fetch(`${API_URL}/api/public/validate-fridge`, {
                 method: 'POST',
                 headers: {
@@ -2358,8 +2513,13 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
 
             const data = await response.json();
             if (response.ok && data.valid) {
+<<<<<<< HEAD
                 // --- ALTERAÇÃO: Passa o valor da checkbox para a função onCondoSelected ---
                 onCondoSelected(selectedCondo, rememberSelection);
+=======
+                // Chama a nova função para definir o condomínio e a geladeira para a sessão atual
+                onCondoSelected(selectedCondo);
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             } else {
                 setError(data.message || 'Seleção inválida.');
             }
@@ -2380,6 +2540,10 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                     <form onSubmit={handleSubmit}>
                         <div className="mb-4 relative">
                             <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+<<<<<<< HEAD
+=======
+                            {/* ALTERAÇÃO: Input substituído por Select */}
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                             <select
                                 value={selectedCondoId}
                                 onChange={(e) => setSelectedCondoId(e.target.value)}
@@ -2393,6 +2557,7 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                                 ))}
                             </select>
                         </div>
+<<<<<<< HEAD
                         
                         {/* --- ADICIONADO: Checkbox "Lembrar seleção" --- */}
                         <div className="my-4 flex items-center justify-center">
@@ -2406,6 +2571,8 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
                             <label htmlFor="remember" className="ml-2 text-sm text-gray-300">Lembrar minha seleção</label>
                         </div>
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                         {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
                         <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-all transform hover:scale-105 flex justify-center items-center" disabled={isLoading}>
                             {isLoading ? <Loader2 className="animate-spin" /> : 'Entrar na Loja'}
@@ -2422,6 +2589,7 @@ const FridgeSelectionPage = ({ setFridgeId, setPage, user, onLogout, onCondoSele
     );
 };
 
+<<<<<<< HEAD
 // App.js -> Adicione este componente junto com os outros componentes do Admin
 
 // App.js -> Substitua o seu InventoryAnalysisPage por este
@@ -2647,6 +2815,11 @@ const AdminDashboardPage = ({ token, setActiveTab }) => {
 
 const AdminDashboard = ({ onLogout }) => {
     const [activeTab, setActiveTab] = React.useState('dashboard');
+=======
+
+const AdminDashboard = ({ onLogout }) => {
+    const [activeTab, setActiveTab] = React.useState('sales');
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const [condominiums, setCondominiums] = React.useState([]);
     const [products, setProducts] = React.useState([]);
     const [profits, setProfits] = React.useState([]);
@@ -2657,7 +2830,10 @@ const AdminDashboard = ({ onLogout }) => {
     const [isProductModalOpen, setIsProductModalOpen] = React.useState(false);
     const [currentProduct, setCurrentProduct] = React.useState(null);
     const token = localStorage.getItem('adminToken');
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const fetchData = React.useCallback(async (dataType, setData, params = '') => {
         setIsLoading(true); setError('');
         try {
@@ -2671,7 +2847,10 @@ const AdminDashboard = ({ onLogout }) => {
             setIsLoading(false);
         }
     }, [token]);
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     React.useEffect(() => {
         if (condominiums.length === 0) { fetchData('condominiums', setCondominiums); }
         switch (activeTab) {
@@ -2681,7 +2860,10 @@ const AdminDashboard = ({ onLogout }) => {
             default: break;
         }
     }, [activeTab, condominiums.length, fetchData]);
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const handleOpenCondoModal = (condo = null) => { setCurrentCondo(condo); setIsCondoModalOpen(true); };
     const handleCloseCondoModal = () => { setIsCondoModalOpen(false); setCurrentCondo(null); };
     const handleSaveCondo = async (condoData) => {
@@ -2771,6 +2953,7 @@ const AdminDashboard = ({ onLogout }) => {
     );
 
     const renderContent = () => {
+<<<<<<< HEAD
         if (isLoading && activeTab !== 'sales' && activeTab !== 'users' && activeTab !== 'central-cashier' && activeTab !== 'inventory-analysis') return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
         if (error) return <div className="text-red-400">Erro: {error}</div>;
         switch (activeTab) {
@@ -2778,6 +2961,13 @@ const AdminDashboard = ({ onLogout }) => {
             case 'sales': return <EntradasVendasPage condominiums={condominiums} token={token} />;
             case 'central-cashier': return <CentralCashierPage token={token} condominiums={condominiums} />;
             case 'inventory-analysis': return <InventoryAnalysisPage condominiums={condominiums} token={token} />;
+=======
+        if (isLoading && activeTab !== 'sales' && activeTab !== 'users' && activeTab !== 'central-cashier') return <div className="flex justify-center items-center h-full"><Loader2 className="w-12 h-12 text-orange-500 animate-spin" /></div>;
+        if (error) return <div className="text-red-400">Erro: {error}</div>;
+        switch (activeTab) {
+            case 'sales': return <EntradasVendasPage condominiums={condominiums} token={token} />;
+            case 'central-cashier': return <CentralCashierPage token={token} condominiums={condominiums} />;
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             case 'critical-stock': return <CriticalStockPage token={token} />;
             case 'users': return <UserManagementPage condominiums={condominiums} token={token} />;
             case 'stock': return <StockManagement condominiums={condominiums} token={token} />;
@@ -2787,7 +2977,10 @@ const AdminDashboard = ({ onLogout }) => {
             default: return <div>Selecione uma opção</div>;
         }
     };
+<<<<<<< HEAD
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     return (
         <div className="min-h-screen bg-gray-900 text-white flex">
             <CondoModal isOpen={isCondoModalOpen} onClose={handleCloseCondoModal} onSave={handleSaveCondo} condo={currentCondo} />
@@ -2797,10 +2990,15 @@ const AdminDashboard = ({ onLogout }) => {
                     <span className="text-2xl font-bold text-orange-500">Smart</span><span className="text-2xl font-light text-white">Fridge</span><p className="text-sm text-gray-400">Painel Admin</p>
                 </div>
                 <nav className="flex flex-col gap-2 flex-grow">
+<<<<<<< HEAD
                     <button onClick={() => setActiveTab('dashboard')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'dashboard' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><LayoutDashboard /> Dashboard</button>
                     <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'sales' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><DollarSign /> Entradas e Vendas</button>
                     <button onClick={() => setActiveTab('central-cashier')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'central-cashier' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><PiggyBank /> Caixa Central</button>
                     <button onClick={() => setActiveTab('inventory-analysis')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'inventory-analysis' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><PieChart /> Análise de Inventário</button>
+=======
+                    <button onClick={() => setActiveTab('sales')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'sales' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><DollarSign /> Entradas e Vendas</button>
+                    <button onClick={() => setActiveTab('central-cashier')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'central-cashier' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><PiggyBank /> Caixa Central</button>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                     <button onClick={() => setActiveTab('critical-stock')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'critical-stock' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><AlertTriangle /> Estoque Crítico</button>
                     <button onClick={() => setActiveTab('users')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'users' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><UsersIcon /> Gestão de Utilizadores</button>
                     <button onClick={() => setActiveTab('stock')} className={`flex items-center gap-3 p-3 rounded-md transition ${activeTab === 'stock' ? 'bg-orange-500 text-white' : 'hover:bg-gray-700'}`}><ShoppingCart /> Estoque Geral</button>
@@ -2892,6 +3090,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
 
     const fetchUserData = React.useCallback(async () => {
         if (!user) return;
+<<<<<<< HEAD
 
         // Limpa mensagens de erro/sucesso e reseta os formulários
         setModalError(''); 
@@ -2901,6 +3100,15 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
         setBalanceReason('');
 
         // Preenche os dados do formulário principal
+=======
+        const mockInvoices = [
+            { id: 1, amount: '150.75', due_date: '2025-07-10', status: 'paid', paid_at: '2025-07-09' },
+            { id: 2, amount: '88.20', due_date: '2025-08-10', status: 'late', paid_at: null },
+            { id: 3, amount: '210.50', due_date: '2025-06-10', status: 'paid', paid_at: '2025-06-10' }
+        ];
+        setUserInvoices(mockInvoices);
+        
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
         setFormData({ 
             name: user.name || '', 
             email: user.email || '', 
@@ -2911,6 +3119,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
         });
         setCreditLimit(user.credit_limit || '');
         setCreditDueDay(user.credit_due_day || '');
+<<<<<<< HEAD
         
         // Busca as faturas reais do utilizador
         try {
@@ -2953,6 +3162,28 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
             setModalSuccess(successMessage);
             onSave(); // Recarrega a lista de utilizadores na página principal
             fetchUserData(); // Recarrega os dados dentro do modal
+=======
+        setModalError(''); setModalSuccess(''); setTicketMessage(''); setBalanceToAdd(''); setBalanceReason('');
+    }, [user]);
+
+    React.useEffect(() => {
+        fetchUserData();
+    }, [user, fetchUserData]);
+
+    if (!isOpen || !user) return null;
+
+    const handleAction = async (action, body, successMessage) => {
+        setIsSaving(true); setModalError(''); setModalSuccess('');
+        try {
+            const response = await action(body);
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.message || `Falha na operação: ${successMessage}`);
+            }
+            setModalSuccess(successMessage);
+            onSave();
+            fetchUserData();
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
         } catch (err) {
             setModalError(err.message);
         } finally {
@@ -2969,6 +3200,10 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
+<<<<<<< HEAD
+=======
+            body,
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             'Informações do usuário salvas com sucesso!'
         );
     };
@@ -2981,6 +3216,10 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
+<<<<<<< HEAD
+=======
+            body,
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             `Saldo de R$ ${parseFloat(balanceToAdd).toFixed(2)} adicionado com sucesso!`
         );
     };
@@ -2993,6 +3232,10 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(body)
             }),
+<<<<<<< HEAD
+=======
+            body,
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             'Tíquete enviado com sucesso!'
         );
     };
@@ -3006,10 +3249,15 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             }),
+<<<<<<< HEAD
+=======
+            {},
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
             `Usuário ${action === 'bloquear' ? 'bloqueado' : 'desbloqueado'} com sucesso!`
         );
     };
 
+<<<<<<< HEAD
     const handleCloseInvoice = () => {
         if (!window.confirm(`Tem a certeza que quer fechar a fatura atual no valor de R$ ${parseFloat(user.credit_used).toFixed(2)}? Esta ação criará uma pendência e zerará o saldo devedor do utilizador.`)) return;
 
@@ -3021,6 +3269,8 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
             'Fatura fechada com sucesso! O saldo devedor do utilizador foi zerado.'
         );
     };
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
     return (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 animate-fade-in-fast">
@@ -3065,6 +3315,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                                  {user.is_active ? <><Ban size={18} /> Bloquear Conta</> : <><CheckCircle2 size={18} /> Desbloquear Conta</>}
                              </button>
                         </div>
+<<<<<<< HEAD
 
                          <div className="mb-6 pb-6 border-b border-gray-700">
                             <h3 className="text-lg font-semibold mb-2 text-purple-400">Ações da Fatura</h3>
@@ -3076,6 +3327,8 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                                 <FileText size={18} /> Fechar Fatura e Gerar Pendência
                             </button>
                         </div>
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                         
                         <div className="mb-6 pb-6 border-b border-gray-700">
                              <h3 className="text-lg font-semibold mb-4">Adicionar Saldo</h3>
@@ -3091,6 +3344,10 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                             <textarea value={ticketMessage} onChange={e => setTicketMessage(e.target.value)} placeholder="Digite sua mensagem para o usuário aqui..." className="w-full bg-gray-700 p-2 rounded-md mb-2" rows="3"></textarea>
                             <button onClick={handleSendTicket} disabled={isSaving || !ticketMessage} className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500"><Ticket size={18} /> Enviar Tíquete</button>
                         </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                     </div>
                     {/* Coluna da Direita: Faturas e Histórico */}
                     <div>
@@ -3099,6 +3356,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                              {userInvoices.length > 0 ? userInvoices.map(invoice => (
                                  <div key={invoice.id} className="bg-gray-700/50 p-3 rounded-md">
                                      <div className="flex justify-between items-center">
+<<<<<<< HEAD
                                          <div>
                                             <p className="font-bold">Fatura de {new Date(invoice.due_date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
                                             <p className="text-sm text-gray-400">Valor: R$ {parseFloat(invoice.amount).toFixed(2)}</p>
@@ -3106,6 +3364,10 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
                                          <span className={`px-2 py-1 text-xs rounded-full font-semibold ${invoice.status === 'paid' ? 'bg-green-800 text-green-300' : (new Date(invoice.due_date) < new Date() && invoice.status !== 'paid' ? 'bg-red-800 text-red-300' : 'bg-yellow-800 text-yellow-300')}`}>
                                              {invoice.status === 'paid' ? 'Paga' : (new Date(invoice.due_date) < new Date() ? 'Atrasada' : 'Aberta')}
                                          </span>
+=======
+                                         <p className="font-bold">Fatura de {new Date(invoice.due_date).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+                                         <span className={`px-2 py-1 text-xs rounded-full font-semibold ${invoice.status === 'paid' ? 'bg-green-800 text-green-300' : 'bg-red-800 text-red-300'}`}>{invoice.status === 'late' ? 'Atrasada' : 'Paga'}</span>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                                      </div>
                                  </div>
                              )) : <p className="text-sm text-gray-500 text-center p-4">Nenhuma fatura encontrada.</p>}
@@ -3118,6 +3380,7 @@ const UserEditModal = ({ user, isOpen, onClose, onSave, token }) => {
 };
 
 const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
+<<<<<<< HEAD
     // ESTADO: 'summary' irá guardar os dados completos vindos do backend.
     const [summary, setSummary] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -3203,6 +3466,78 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
 
     // Calcula a percentagem de uso com base nos dados do backend
     const usagePercentage = summary.creditLimit > 0 ? (summary.creditUsed / summary.creditLimit) * 100 : 0;
+=======
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [error, setError] = React.useState('');
+    const creditLimit = parseFloat(user?.credit_limit || 0);
+    const creditUsed = parseFloat(user?.credit_used || 0);
+    const availableCredit = creditLimit - creditUsed;
+    const usagePercentage = creditLimit > 0 ? (creditUsed / creditLimit) * 100 : 0;
+
+        const calculateInvoiceTotal = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Cria a data de vencimento para o mês ATUAL
+        let dueDate = new Date(today.getFullYear(), today.getMonth(), user.credit_due_day);
+
+        // SE a data de hoje JÁ PASSOU da data de vencimento deste mês,
+        // a fatura vencerá apenas no PRÓXIMO mês.
+        if (today > dueDate) {
+            dueDate.setMonth(dueDate.getMonth() + 1);
+        }
+
+        let total = creditUsed;
+        const fees = total * 0.10;
+        let interest = 0;
+
+        if (today > dueDate) {
+            const diffTime = Math.abs(today - dueDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            interest = total * 0.025 * diffDays;
+        }
+
+        return {
+            base: creditUsed,
+            fees,
+            interest,
+            total: total + fees + interest,
+            dueDate: dueDate // Retorna a data correta
+        };
+    };
+
+    const invoice = calculateInvoiceTotal();
+
+    const handlePayInvoice = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/api/credit/pay-invoice`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Falha ao gerar PIX da fatura.');
+        }
+        
+        setPaymentData(data);
+        setPaymentMethod('pix');
+        setPage('payment');
+
+    } catch (err) {
+        setError(err.message);
+        alert(`Erro na comunicação com o servidor: ${err.message}`);
+    } finally {
+        setIsLoading(false);
+    }
+};
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -3223,17 +3558,28 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                              <CreditCard size={32} />
                          </div>
                          <div className="mt-6">
+<<<<<<< HEAD
                              <p className="text-sm opacity-80">Dívida Total (Faturas + Gastos)</p>
                              {/* Mostra a dívida total */}
                              <p className="text-3xl font-bold">R$ {summary.creditUsed.toFixed(2).replace('.', ',')}</p>
+=======
+                             <p className="text-sm opacity-80">Fatura Atual</p>
+                             <p className="text-3xl font-bold">R$ {creditUsed.toFixed(2).replace('.', ',')}</p>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                          </div>
                          <div className="mt-2 flex justify-between items-end">
                              <div>
                                  <p className="text-xs opacity-80">Limite Disponível</p>
+<<<<<<< HEAD
                                  {/* Mostra o limite disponível real */}
                                  <p className="font-semibold">R$ {summary.availableCredit.toFixed(2).replace('.', ',')}</p>
                              </div>
                              <p className="text-xs opacity-80">Vencimento: {summary.dueDate ? new Date(summary.dueDate).toLocaleDateString('pt-BR') : 'N/D'}</p>
+=======
+                                 <p className="font-semibold">R$ {availableCredit.toFixed(2).replace('.', ',')}</p>
+                             </div>
+                             <p className="text-xs opacity-80">Vencimento: Dia {user.credit_due_day || 'N/D'}</p>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                          </div>
                      </div>
                      <div className="mt-4">
@@ -3241,14 +3587,20 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                              <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: `${usagePercentage}%` }}></div>
                          </div>
                          <div className="flex justify-between text-xs mt-1 text-gray-400">
+<<<<<<< HEAD
                              <span>Gasto Total: R$ {summary.creditUsed.toFixed(2).replace('.', ',')}</span>
                              <span>Limite Total: R$ {summary.creditLimit.toFixed(2).replace('.', ',')}</span>
+=======
+                             <span>Gasto: R$ {creditUsed.toFixed(2).replace('.', ',')}</span>
+                             <span>Limite Total: R$ {creditLimit.toFixed(2).replace('.', ',')}</span>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                          </div>
                      </div>
                 </div>
 
                 <div className="bg-gray-800 p-6 rounded-lg mt-8">
                     <h3 className="text-xl font-bold mb-4">Pagar Fatura</h3>
+<<<<<<< HEAD
                     {/* Verifica se o total a pagar (com taxas) é maior que zero */}
                     {summary.totalToPay > 0 ? (
                         <>
@@ -3258,6 +3610,17 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                                 <p className="flex justify-between"><span>Gastos do ciclo atual:</span> <span>R$ {summary.currentSpending.toFixed(2).replace('.', ',')}</span></p>
                                 <p className="flex justify-between"><span>Taxa de Serviço (10%):</span> <span>R$ {summary.serviceFee.toFixed(2).replace('.', ',')}</span></p>
                                 <p className="flex justify-between text-white font-bold text-lg mt-2 pt-2 border-t border-gray-600"><span>Total a Pagar:</span> <span>R$ {summary.totalToPay.toFixed(2).replace('.', ',')}</span></p>
+=======
+                    {creditUsed > 0 ? (
+                        <>
+                            <div className="space-y-2 text-gray-300 mb-4 border-b border-gray-700 pb-4">
+                                <p className="flex justify-between"><span>Valor Gasto:</span> <span>R$ {invoice.base.toFixed(2).replace('.', ',')}</span></p>
+                                <p className="flex justify-between"><span>Taxa de Serviço:</span> <span>R$ {invoice.fees.toFixed(2).replace('.', ',')}</span></p>
+                                {invoice.interest > 0 && (
+                                     <p className="flex justify-between text-red-400"><span>Juros por Atraso:</span> <span>R$ {invoice.interest.toFixed(2).replace('.', ',')}</span></p>
+                                )}
+                                <p className="flex justify-between text-white font-bold text-lg mt-2 pt-2 border-t border-gray-600"><span>Total a Pagar:</span> <span>R$ {invoice.total.toFixed(2).replace('.', ',')}</span></p>
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
                             </div>
                             <button
                                 onClick={handlePayInvoice}
@@ -3378,6 +3741,7 @@ const HistoryPage = ({ setPage, token, showToast }) => {
     );
 };
 
+<<<<<<< HEAD
 const Footer = () => {
     return (
         <footer className="bg-gray-800 border-t border-gray-700 mt-12">
@@ -3413,6 +3777,8 @@ const Footer = () => {
         </footer>
     );
 };
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
 export default function App() {
     const [page, setPage] = React.useState('login');
@@ -3425,14 +3791,28 @@ export default function App() {
     const [fridgeId, setFridgeId] = React.useState(null);
     const [toast, setToast] = React.useState({ show: false, message: '' });
 
+<<<<<<< HEAD
     // Armazena a lista de condomínios para evitar múltiplas chamadas à API
     const [allCondos, setAllCondos] = React.useState([]);
 
+=======
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const showToast = (message) => {
         setToast({ show: true, message });
         setTimeout(() => setToast({ show: false, message: '' }), 3000);
     };
 
+<<<<<<< HEAD
+=======
+    const handleCondoSelect = (selectedCondo) => {
+        localStorage.setItem('savedFridgeId', selectedCondo.fridge_id);
+        // Atualiza o utilizador na sessão para usar o novo condoId
+        setUser(prevUser => ({ ...prevUser, condoId: selectedCondo.id }));
+        setFridgeId(selectedCondo.fridge_id);
+        setPage('home');
+    };
+
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const updateUserBalance = React.useCallback(async () => {
         const token = localStorage.getItem('token');
         if (!token) return;
@@ -3447,14 +3827,47 @@ export default function App() {
         }
     }, []);
 
+<<<<<<< HEAD
     // --- LÓGICA DE LOGIN E SESSÃO REESCRITA ---
 
+=======
+    const handleLogin = async (token, userData) => {
+        localStorage.setItem('token', token);
+        setUser(userData);
+        await updateUserBalance();
+
+        const savedFridgeId = localStorage.getItem('savedFridgeId');
+        if (savedFridgeId) {
+            try {
+                const validationResponse = await fetch(`${API_URL}/api/public/validate-fridge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ condoId: userData.condoId, fridgeId: savedFridgeId })
+                });
+                const validationData = await validationResponse.json();
+                if (validationData.valid) {
+                    setFridgeId(savedFridgeId);
+                    setPage('home');
+                    return;
+                } else {
+                    localStorage.removeItem('savedFridgeId');
+                }
+            } catch (error) {
+                console.error("Falha ao validar geladeira salva:", error);
+                localStorage.removeItem('savedFridgeId');
+            }
+        }
+        setPage('fridgeSelection');
+    };
+    
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
     const handleLogout = () => {
         setUser(null);
         setCart([]);
         setFridgeId(null);
         localStorage.removeItem('token');
         localStorage.removeItem('adminToken');
+<<<<<<< HEAD
         localStorage.removeItem('savedFridgeId'); // Limpa por segurança
         setPage('login');
     };
@@ -3523,6 +3936,39 @@ export default function App() {
         setFridgeId(selectedCondo.fridge_id);
         setPage('home');
     };
+=======
+        localStorage.removeItem('savedFridgeId');
+        setPage('login');
+    };
+
+    React.useEffect(() => {
+        const validateToken = async () => {
+            const token = localStorage.getItem('token');
+            const adminToken = localStorage.getItem('adminToken');
+            
+            if (adminToken) {
+                setUser({ name: "Admin" });
+                setPage('admin');
+            } else if (token) {
+                try {
+                    const meResponse = await fetch(`${API_URL}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                    if (meResponse.ok) {
+                        const userData = await meResponse.json();
+                        handleLogin(token, userData);
+                    } else {
+                        handleLogout();
+                    }
+                } catch (error) {
+                    console.error("Falha ao validar token", error);
+                    handleLogout();
+                }
+            }
+            setIsInitializing(false);
+        };
+        validateToken();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); 
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
 
     const handleAdminLogin = () => { setUser({ name: "Admin" }); setPage('admin'); };
     const handleRegister = (token, userData) => { 
@@ -3547,6 +3993,7 @@ export default function App() {
         return <div className="min-h-screen bg-gray-900 flex justify-center items-center"><Loader2 className="w-16 h-16 text-orange-500 animate-spin" /></div>;
     }
 
+<<<<<<< HEAD
     const pagesWithoutFooter = [
         'login', 
         'register', 
@@ -3600,3 +4047,34 @@ export default function App() {
         </>
     )
 }
+=======
+    return (
+        <>
+            <Toast show={toast.show} message={toast.message} />
+            {(() => {
+                switch (page) {
+                    case 'register': return <RegisterPage onRegister={handleRegister} onSwitchToLogin={() => setPage('login')} />;
+                    case 'fridgeSelection': return user ? <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'home': return user && fridgeId ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} fridgeId={fridgeId} /> : <FridgeSelectionPage setFridgeId={setFridgeId} setPage={setPage} user={user} onLogout={handleLogout} />;
+                    case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'awaitingUnlock': return <AwaitingUnlockPage setPage={setPage} paymentData={paymentData} />;
+                    case 'enjoy': return <EnjoyPage setPage={setPage} />;
+                    case 'my-account': return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'changeCondo': return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
+                    case 'admin': return <AdminDashboard onLogout={handleLogout} />;
+                    case 'wallet': return user ? <WalletPage user={user} setPage={setPage} setPaymentData={setPaymentData} setDepositData={setDepositData} setPaymentMethod={setPaymentMethod} updateUserBalance={updateUserBalance} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={() => { showToast('Depósito realizado com sucesso!'); updateUserBalance(); }} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'my-tickets': return user ? <MyTicketsPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'credit': return user ? <CreditPage user={user} setPage={setPage} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'depositSuccess': return user ? <DepositSuccessPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;                   
+                    case 'history': return user ? <HistoryPage setPage={setPage} token={localStorage.getItem('token')} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                    case 'login':
+                    default: return <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                }
+            })()}
+        </>
+    )
+}
+>>>>>>> d64701aa3f0c1ecea76b7da0de0d783205febb6d
