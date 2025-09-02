@@ -3263,13 +3263,11 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
                          </div>
                          <div className="mt-6">
                              <p className="text-sm opacity-80">Dívida Total (Faturas + Gastos)</p>
-                             {/* Mostra a dívida total */}
                              <p className="text-3xl font-bold">R$ {summary.creditUsed.toFixed(2).replace('.', ',')}</p>
                          </div>
                          <div className="mt-2 flex justify-between items-end">
                              <div>
                                  <p className="text-xs opacity-80">Limite Disponível</p>
-                                 {/* Mostra o limite disponível real */}
                                  <p className="font-semibold">R$ {summary.availableCredit.toFixed(2).replace('.', ',')}</p>
                              </div>
                              <p className="text-xs opacity-80">Vencimento: {summary.dueDate ? new Date(summary.dueDate).toLocaleDateString('pt-BR') : 'N/D'}</p>
@@ -3288,14 +3286,15 @@ const CreditPage = ({ user, setPage, setPaymentData, setPaymentMethod }) => {
 
                 <div className="bg-gray-800 p-6 rounded-lg mt-8">
                     <h3 className="text-xl font-bold mb-4">Pagar Fatura</h3>
-                    {/* Verifica se o total a pagar (com taxas) é maior que zero */}
                     {summary.totalToPay > 0 ? (
                         <>
                             <div className="space-y-2 text-gray-300 mb-4 border-b border-gray-700 pb-4">
-                                {/* Mostra o detalhe dos valores */}
                                 <p className="flex justify-between"><span>Faturas Pendentes:</span> <span>R$ {summary.pendingInvoicesAmount.toFixed(2).replace('.', ',')}</span></p>
                                 <p className="flex justify-between"><span>Gastos do ciclo atual:</span> <span>R$ {summary.currentSpending.toFixed(2).replace('.', ',')}</span></p>
                                 <p className="flex justify-between"><span>Taxa de Serviço (10%):</span> <span>R$ {summary.serviceFee.toFixed(2).replace('.', ',')}</span></p>
+                                {summary.interest > 0 && (
+                                     <p className="flex justify-between text-red-400"><span>Juros por Atraso:</span> <span>R$ {summary.interest.toFixed(2).replace('.', ',')}</span></p>
+                                )}
                                 <p className="flex justify-between text-white font-bold text-lg mt-2 pt-2 border-t border-gray-600"><span>Total a Pagar:</span> <span>R$ {summary.totalToPay.toFixed(2).replace('.', ',')}</span></p>
                             </div>
                             <button
