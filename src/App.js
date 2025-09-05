@@ -1258,7 +1258,7 @@ const AwaitingUnlockPage = ({ setPage, paymentData }) => {
     React.useEffect(() => {
         const simTimeout = setTimeout(() => {
             setPage('enjoy');
-        }, 12000);
+        }, 11000);
 
         return () => {
             clearTimeout(simTimeout);
