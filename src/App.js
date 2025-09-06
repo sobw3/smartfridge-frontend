@@ -404,6 +404,7 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
     const [error, setError] = React.useState('');
     const [success, setSuccess] = React.useState('');
     const [availableCondos, setAvailableCondos] = React.useState([]);
+    const apartmentBlocks = Array.from({ length: 19 }, (_, i) => String.fromCharCode(65 + i));
     React.useEffect(() => {
         const fetchCondos = async () => {
             try {
