@@ -404,7 +404,6 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
     const [error, setError] = React.useState('');
     const [success, setSuccess] = React.useState('');
     const [availableCondos, setAvailableCondos] = React.useState([]);
-    const apartmentBlocks = Array.from({ length: 19 }, (_, i) => String.fromCharCode(65 + i));
     React.useEffect(() => {
         const fetchCondos = async () => {
             try {
@@ -480,7 +479,7 @@ const RegisterPage = ({ onRegister, onSwitchToLogin }) => {
                             <div className="mb-4 relative"><Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                 <select name="apartmentBlock" value={formData.apartmentBlock} onChange={handleChange} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500 appearance-none">
                                     <option value="">Bloco</option>
-                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map(b => <option key={b} value={b}>{b}</option>)}
+                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S'].map(b => <option key={b} value={b}>{b}</option>)}
                                 </select>
                             </div>
                             <div className="mb-4 relative"><Home className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} /><input name="apartmentNumber" type="text" placeholder="Nº do Apto" value={formData.apartmentNumber} onChange={handleChange} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
