@@ -1476,7 +1476,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
     
     const handleCreatePixDeposit = async () => {
         const amount = parseFloat(depositAmount);
-        const MIN_DEPOSIT = 30.00;
+        const MIN_DEPOSIT = 1.00;
         if (!amount || amount < MIN_DEPOSIT) { setError(`O valor mínimo para depósito PIX é R$ ${MIN_DEPOSIT.toFixed(2).replace('.', ',')}.`); return; }
         setIsLoading(true); setError('');
         const token = localStorage.getItem('token');
@@ -1586,7 +1586,7 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
                     {activeAction === 'deposit' && (
                         <div className="bg-gray-800 p-6 rounded-lg animate-fade-in-fast">
                             <h3 className="text-xl font-semibold mb-4 text-white">Adicionar Saldo</h3>
-                            <div className="relative mb-4"><label className="block text-sm text-gray-200 mb-1">Valor do Depósito (R$)</label><input type="number" placeholder="Min: 30,00" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
+                            <div className="relative mb-4"><label className="block text-sm text-gray-200 mb-1">Valor do Depósito (R$)</label><input type="number" placeholder="Min: 1,00" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-orange-500" /></div>
                             <div className="flex flex-col md:flex-row gap-4">
                                 <button onClick={handleCreatePixDeposit} disabled={isLoading} className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">{isLoading ? <Loader2 className="animate-spin" /> : 'Gerar PIX'}</button>
                                 
