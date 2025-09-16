@@ -807,6 +807,38 @@ const HomePage = ({ user, onLogout, cart, addToCart, setPage, fridgeId }) => {
     );
 };
 
+const speak = async (text) => {
+    try {
+        const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+        if (!token) return;
+
+        // 1. Chama o nosso backend para gerar o áudio
+        const response = await fetch(`${API_URL}/api/tts/speak`, { // Use a rota correta aqui
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ text: text })
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao gerar o áudio no backend.');
+        }
+
+        // 2. Transforma a resposta em um objeto de áudio que o navegador pode tocar
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // 3. Toca o áudio
+        const audio = new Audio(audioUrl);
+        audio.play();
+
+    } catch (error) {
+        console.error("Erro ao tentar reproduzir a voz:", error);
+    }
+};
+
 const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMethod, onPaymentSuccess, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
@@ -1256,12 +1288,19 @@ const PaymentPage = ({ paymentData, setPage, paymentMethod, user, cart, onPaymen
 
 const AwaitingUnlockPage = ({ setPage, paymentData }) => {
     React.useEffect(() => {
+
+        setTimeout(() => {
+            // Chamada simples
+            speak("Pagamento aprovado, aguarde a porta destravar.");
+        }, 500);
+        
         const simTimeout = setTimeout(() => {
             setPage('enjoy');
         }, 11000);
 
         return () => {
             clearTimeout(simTimeout);
+            window.speechSynthesis.cancel();
         };
     }, [setPage]);
 
@@ -1280,13 +1319,27 @@ const AwaitingUnlockPage = ({ setPage, paymentData }) => {
     );
 };
 
-const EnjoyPage = ({ setPage }) => {
+const EnjoyPage = ({ setPage, user }) => {
+    
+    // Adicionado: useEffect para a voz com o nome do utilizador
     React.useEffect(() => {
+        // Pega o primeiro nome para a saudação ficar mais natural
+        const firstName = user?.name ? user.name.split(' ')[0] : 'Cliente';
+        const textToSpeak = `${firstName}, porta destravada! Abra a porta e retire seus produtos. Volte sempre!`;
+        
+        setTimeout(() => {
+            speak(textToSpeak);
+        }, 1000);
+
         const timer = setTimeout(() => {
             setPage('home');
-        }, 8000);
-        return () => clearTimeout(timer);
-    }, [setPage]);
+        }, 10000);
+
+        return () => {
+            clearTimeout(timer);
+            window.speechSynthesis.cancel();
+        };
+    }, [setPage, user]); // Depende do 'user' para ter acesso ao nome
 
     return (
         <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
@@ -3615,7 +3668,7 @@ export default function App() {
                             case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} fridgeId={fridgeId}/> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'awaitingUnlock': return <AwaitingUnlockPage setPage={setPage} />;
-                            case 'enjoy': return <EnjoyPage setPage={setPage} />;
+                            case 'enjoy': return <EnjoyPage setPage={setPage} user={user} />;
                             case 'my-account': return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'changeCondo': return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
