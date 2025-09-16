@@ -1286,6 +1286,70 @@ const PaymentPage = ({ paymentData, setPage, paymentMethod, user, cart, onPaymen
     }
 };
 
+const PostPaymentStatusPage = ({ user, setPage }) => {
+    // Novo estado para controlar o que é mostrado: 'aguardando' ou 'destravado'
+    const [status, setStatus] = React.useState('awaiting_unlock');
+
+    React.useEffect(() => {
+        // Efeito que roda uma única vez quando a página aparece
+        
+        // 1. Toca a primeira voz
+        setTimeout(() => {
+            speak("Pagamento aprovado, aguarde a porta destravar.");
+        }, 500); // Pequeno atraso para a transição de tela
+
+        // 2. Agenda a mudança de status e a segunda voz para 5 segundos depois
+        const unlockTimeout = setTimeout(() => {
+            setStatus('unlocked'); // Muda o que é mostrado na tela
+            
+            const firstName = user?.name ? user.name.split(' ')[0] : 'Cliente';
+            const textToSpeak = `${firstName}, porta destravada! Abra a porta e retire seus produtos. Volte sempre!`;
+            speak(textToSpeak);
+
+        }, 11000); // 5 segundos até destravar
+
+        // 3. Agenda o redirecionamento para a home page 8 segundos depois da segunda voz
+        const redirectTimeout = setTimeout(() => {
+            setPage('home');
+        }, 8000 + 11000);
+
+
+        // Limpa tudo se o utilizador sair da página
+        return () => {
+            clearTimeout(unlockTimeout);
+            clearTimeout(redirectTimeout);
+            window.speechSynthesis.cancel();
+        };
+    }, [user, setPage]); // Dependências do efeito
+
+    // Renderiza uma coisa ou outra dependendo do estado
+    if (status === 'awaiting_unlock') {
+        return (
+            <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
+                <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+                    <div className="relative w-32 h-32 mx-auto mb-6">
+                        <Refrigerator size={80} className="text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <div className="absolute inset-0 border-4 border-orange-400 rounded-full animate-ping"></div>
+                    </div>
+                    <h1 className="text-3xl font-bold mb-2">Pagamento Aprovado!</h1>
+                    <p className="text-gray-300 mb-6">A sua SmartFridge será destravada em instantes. Aproxime-se para abrir a porta.</p>
+                    <Loader2 size={48} className="text-orange-400 mx-auto animate-spin" />
+                </div>
+            </div>
+        );
+    }
+
+    return ( // status === 'unlocked'
+        <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
+            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
+                <Check size={80} className="text-green-500 mx-auto mb-4" />
+                <h1 className="text-3xl font-bold mb-2">Porta Destravada!</h1>
+                <p className="text-gray-300 mb-6">Retire os seus produtos e feche a porta. Bom apetite!</p>
+            </div>
+        </div>
+    );
+};
+
 const AwaitingUnlockPage = ({ setPage, paymentData }) => {
     React.useEffect(() => {
 
@@ -3667,8 +3731,7 @@ export default function App() {
                             case 'home': return user && fridgeId ? <HomePage user={user} onLogout={handleLogout} cart={cart} addToCart={addToCart} setPage={setPage} fridgeId={fridgeId} /> : <FridgeSelectionPage onCondoSelected={handleCondoSelect} setPage={setPage} user={user} onLogout={handleLogout} />;
                             case 'cart': return user ? <CartPage cart={cart} setCart={setCart} setPage={setPage} user={user} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} onPaymentSuccess={updateUserBalance} fridgeId={fridgeId} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'payment': return user ? <PaymentPage paymentData={paymentData} setPage={setPage} paymentMethod={paymentMethod} user={user} cart={cart} onPaymentSuccess={updateUserBalance} setPaymentData={setPaymentData} fridgeId={fridgeId}/> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                            case 'awaitingUnlock': return <AwaitingUnlockPage setPage={setPage} />;
-                            case 'enjoy': return <EnjoyPage setPage={setPage} user={user} />;
+                            case 'postPayment': return <PostPaymentStatusPage user={user} setPage={setPage} />;
                             case 'my-account': return user ? <MyAccountPage user={user} setPage={setPage} onAccountUpdate={handleAccountUpdate} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'changeCondo': return user ? <ChangeCondoPage user={user} setPage={setPage} onCondoChanged={handleCondoChanged} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
