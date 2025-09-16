@@ -1027,7 +1027,7 @@ const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
                         clearInterval(interval);
                         
                         // Redireciona para a página correta com base na verificação
-                        setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'awaitingUnlock'), 2000);
+                        setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'postPayment'), 2000);
                     }
                 } catch (error) {
                     console.error("[Polling] Erro ao processar a resposta do status:", error);
