@@ -859,7 +859,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
     const clearCart = () => { setCart([]); };
     const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
 
-    const handleCreatePixPayment = async () => {
+     const handleCreatePixPayment = async () => {
         setIsLoading(true); 
         setError('');
         try {
