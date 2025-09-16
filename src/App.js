@@ -889,7 +889,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
             
             setPaymentData({ unlockToken: data.unlockToken });
             onPaymentSuccess();
-            setPage('awaitingUnlock');
+            setPage('postPayment');
 
         } catch (err) {
             setError(err.message);
