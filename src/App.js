@@ -867,7 +867,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
             const response = await fetch(`${API_URL}/api/orders/create-pix`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ items: cart, fridgeId: fridgeId, user: user })
+                body: JSON.stringify({ items: cart, fridgeId: fridgeId, condoId: user.condoId, user: user })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Falha ao gerar pagamento PIX.');
