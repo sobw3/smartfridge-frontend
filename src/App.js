@@ -1624,10 +1624,9 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Falha ao criar ordem de depósito.');
-            setPaymentData(data);
+            setPaymentData({ ...data, amount: amount });
             setPaymentMethod('pix');
             setPage('payment');
-            setPaymentData({ ...data, amount: amount });
 
         } catch (err) {
             setError(err.message);
