@@ -1350,38 +1350,7 @@ const PostPaymentStatusPage = ({ user, setPage }) => {
     );
 };
 
-const AwaitingUnlockPage = ({ setPage, paymentData }) => {
-    React.useEffect(() => {
 
-        setTimeout(() => {
-            // Chamada simples
-            speak("Pagamento aprovado, aguarde a porta destravar.");
-        }, 500);
-        
-        const simTimeout = setTimeout(() => {
-            setPage('enjoy');
-        }, 11000);
-
-        return () => {
-            clearTimeout(simTimeout);
-            window.speechSynthesis.cancel();
-        };
-    }, [setPage]);
-
-    return (
-        <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
-            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
-                <div className="relative w-32 h-32 mx-auto mb-6">
-                    <Refrigerator size={80} className="text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute inset-0 border-4 border-orange-400 rounded-full animate-ping"></div>
-                </div>
-                <h1 className="text-3xl font-bold mb-2">Pagamento Aprovado!</h1>
-                <p className="text-gray-300 mb-6">A sua SmartFridge será destravada em instantes. Aproxime-se para abrir a porta.</p>
-                <Loader2 size={48} className="text-orange-400 mx-auto animate-spin" />
-            </div>
-        </div>
-    );
-};
 
 const EnjoyPage = ({ setPage, user }) => {
     
