@@ -1627,6 +1627,8 @@ const WalletPage = ({ user, setPage, setPaymentData, setDepositData, setPaymentM
             setPaymentData(data);
             setPaymentMethod('pix');
             setPage('payment');
+            setPaymentData({ ...data, amount: amount });
+
         } catch (err) {
             setError(err.message);
         } finally {
