@@ -1,6 +1,6 @@
 import React from 'react';
 // Ícones adicionados: History para o novo histórico, FileText para faturas
-import { Mail, Lock, User, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText, Instagram, MessageSquare, PieChart, LayoutDashboard } from 'lucide-react';
+import { Mail, Lock, User, Clock, Smartphone, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText, Instagram, MessageSquare, PieChart, LayoutDashboard } from 'lucide-react';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick"; // E adicione esta também
@@ -839,9 +839,14 @@ const speak = async (text) => {
     }
 };
 
+// Em App.js, substitua o seu componente CartPage por este
+
+// Em App.js, substitua o seu componente CartPage por este
+
 const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMethod, onPaymentSuccess, fridgeId }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
+
     const updateQuantity = (productId, amount) => {
         const newCart = cart.map(item => {
             if (item.id === productId) return { ...item, quantity: Math.max(0, item.quantity + amount) };
@@ -849,19 +854,27 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
         }).filter(item => item.quantity > 0);
         setCart(newCart);
     };
+
     const removeFromCart = (productId) => { setCart(cart.filter(item => item.id !== productId)); };
     const clearCart = () => { setCart([]); };
+    const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
+
     const handleCreatePixPayment = async () => {
-        setIsLoading(true); setError('');
+        setIsLoading(true); 
+        setError('');
         try {
             const response = await fetch(`${API_URL}/api/orders/create-pix`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ items: cart, user: user, condoId: user.condoId })
+                body: JSON.stringify({ items: cart, fridgeId: fridgeId, user: user })
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Falha ao gerar pagamento PIX.');
-            setPaymentData(data);
+            
+            // ***** A CORREÇÃO CRUCIAL ESTÁ AQUI *****
+            // Juntamos a resposta do backend (data) com o valor total do carrinho (cartTotal)
+            setPaymentData({ ...data, amount: cartTotal });
+            
             setPaymentMethod('pix');
             setPage('payment');
         } catch (err) {
@@ -870,13 +883,15 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
             setIsLoading(false);
         }
     };
+
     const handleCreditCardPayment = () => {
         setPaymentMethod('card');
         setPage('payment');
     };
-    const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
+    
     const handlePayWithWallet = async () => {
-        setIsLoading(true); setError('');
+        setIsLoading(true); 
+        setError('');
         const token = localStorage.getItem('token');
         try {
             const response = await fetch(`${API_URL}/api/orders/pay-with-wallet`, {
@@ -904,33 +919,34 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
     const canUseCredit = availableCredit >= cartTotal;
 
     const handlePayWithCredit = async () => {
-        setIsLoading(true); setError('');
+        setIsLoading(true); 
+        setError('');
         try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/api/orders/pay-with-credit`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-             body: JSON.stringify({ items: cart, fridgeId: fridgeId, condoId: user.condoId })
-        });
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/orders/pay-with-credit`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                 body: JSON.stringify({ items: cart, fridgeId: fridgeId, condoId: user.condoId })
+            });
 
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Falha ao pagar com crédito.');
-        }
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Falha ao pagar com crédito.');
+            }
 
-        setPaymentData({ unlockToken: data.unlockToken });
-        onPaymentSuccess();
-        setPage('awaitingUnlock');
+            setPaymentData({ unlockToken: data.unlockToken });
+            onPaymentSuccess();
+            setPage('postPayment');
         
-    } catch(err) {
-        setError(err.message);
-    } finally {
-        setIsLoading(false);
-    }
-};
+        } catch(err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -995,84 +1011,117 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
 };
 
 const PixPaymentPage = ({ paymentData, setPage, onPaymentSuccess }) => {
-    const [copySuccess, setCopySuccess] = React.useState('');
-    const [paymentConfirmed, setPaymentConfirmed] = React.useState(false);
-    const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
-    const cancelTargetPage = 'home';
+    const [copySuccess, setCopySuccess] = React.useState(false);
+    
+    // REMOVIDO: A lógica e o estado do timer não são mais necessários
+    // const [timeLeft, setTimeLeft] = React.useState(600);
+    // React.useEffect(() => { ... });
 
+    const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
+    const cancelTargetPage = isDeposit ? 'wallet' : 'cart';
+
+    // Efeito para a verificação do pagamento (polling) - sem alterações
     React.useEffect(() => {
         const interval = setInterval(async () => {
-            if (document.visibilityState === 'visible' && !paymentConfirmed) {
-                const token = localStorage.getItem('token');
-                try {
-                    const isDeposit = paymentData && typeof paymentData.orderId !== 'number';
-                    
-                    const statusUrl = isDeposit
-                        ? `${API_URL}/api/wallet/deposit-status/${paymentData.orderId}`
-                        : `${API_URL}/api/orders/${paymentData.orderId}/status`;
-
-                    const response = await fetch(statusUrl, { headers: { 'Authorization': `Bearer ${token}` } });
-                    
-                    if (!response.ok) {
-                        console.error(`[Polling] Erro na resposta do servidor: ${response.status}`);
-                        return;
-                    }
-                    
-                    const data = await response.json();
-
-                    if (data.status === 'paid') {
-                        setPaymentConfirmed(true);
-                        // A função onPaymentSuccess é chamada para ambos os casos para atualizar saldos, etc.
-                        onPaymentSuccess(); 
-                        clearInterval(interval);
-                        
-                        // Redireciona para a página correta com base na verificação
-                        setTimeout(() => setPage(isDeposit ? 'depositSuccess' : 'postPayment'), 2000);
-                    }
-                } catch (error) {
-                    console.error("[Polling] Erro ao processar a resposta do status:", error);
+            if (document.visibilityState !== 'visible') return;
+            const token = localStorage.getItem('token');
+            try {
+                const isDepositCheck = paymentData && typeof paymentData.orderId !== 'number';
+                const statusUrl = isDepositCheck
+                    ? `${API_URL}/api/wallet/deposit-status/${paymentData.orderId}`
+                    : `${API_URL}/api/orders/${paymentData.orderId}/status`;
+                const response = await fetch(statusUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data.status === 'paid') {
+                    onPaymentSuccess();
+                    clearInterval(interval);
+                    setPage(isDepositCheck ? 'depositSuccess' : 'postPayment');
                 }
+            } catch (error) {
+                console.error("[Polling] Erro ao processar a resposta do status:", error);
             }
-        }, 5000);
+        }, 4000);
         return () => clearInterval(interval);
-    }, [paymentData.orderId, setPage, onPaymentSuccess, paymentConfirmed, isDeposit]);
+    }, [paymentData.orderId, setPage, onPaymentSuccess, isDeposit]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(paymentData.pix_qr_code_text);
-        setCopySuccess('Copiado!');
-        setTimeout(() => setCopySuccess(''), 2000);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2500);
     };
 
     const handleCancel = () => { setPage(cancelTargetPage); };
 
     return (
         <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4">
-            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl text-center">
-                {paymentConfirmed ? (
-                    <>
-                        <Check size={64} className="text-green-500 mx-auto mb-4" />
-                        <h1 className="text-2xl font-bold mb-2">Pagamento Aprovado!</h1>
-                        <p className="text-gray-400">A sua transação foi concluída. A redirecionar...</p>
-                    </>
-                ) : (
-                    <>
-                        <h1 className="text-2xl font-bold mb-2">Pague com PIX para continuar</h1>
-                        <p className="text-gray-400 mb-6">Escaneie o QR Code abaixo com o app do seu banco.</p>
-                        <div className='p-4 bg-white rounded-lg inline-block'>
-                            <img src={`data:image/jpeg;base64,${paymentData.pix_qr_code}`} alt="PIX QR Code" className="mx-auto" />
+            <div className="w-full max-w-lg bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl">
+                
+                <div className="text-center mb-6">
+                    <div className="flex justify-center items-baseline">
+                        <span className="text-2xl font-bold text-orange-500">Smart</span>
+                        <span className="text-2xl font-light text-white">Fridge</span>
+                    </div>
+                    <p className="text-lg text-gray-300 mt-1">Pagamento via PIX</p>
+                </div>
+
+                {!isDeposit &&
+                    <div className="bg-gray-900 p-4 rounded-xl text-center mb-6">
+                        <p className="text-gray-400">Valor da sua compra:</p>
+                        <p className="text-3xl font-bold text-orange-400">R$ {parseFloat(paymentData.amount || 0).toFixed(2).replace('.', ',')}</p>
+                    </div>
+                }
+                
+                <div className="text-center mb-6">
+                    <p className="text-gray-300">Pague com o seu banco preferido usando uma das opções abaixo.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    
+                    {/* OPÇÃO 1: QR CODE */}
+                    <div className="flex flex-col items-center gap-4 p-4 bg-gray-700/50 rounded-lg">
+                        <h3 className="font-semibold text-white">1. Escanear o QR Code</h3>
+                        <div className='p-2 bg-white rounded-lg inline-block'>
+                            <img src={`data:image/jpeg;base64,${paymentData.pix_qr_code}`} alt="PIX QR Code" className="w-44 h-44 mx-auto" />
                         </div>
-                        <div className="mt-6 p-3 bg-gray-900 rounded-lg break-words text-sm text-gray-300 relative">
-                            {paymentData.pix_qr_code_text}
-                            <button onClick={handleCopy} className="absolute top-2 right-2 p-1 bg-gray-700 rounded-md hover:bg-gray-600"><Copy size={16} /></button>
+                        <p className="text-xs text-gray-400 text-center">Use a opção "Pagar com QR Code" no seu banco.</p>
+                    </div>
+
+                    {/* OPÇÃO 2: PIX COPIA E COLA */}
+                    <div className="flex flex-col items-center gap-4 p-4 bg-gray-700/50 rounded-lg">
+                        <h3 className="font-semibold text-white">2. PIX Copia e Cola</h3>
+                        <p className="text-xs text-gray-400 text-center mb-2">Use a opção "PIX Copia e Cola" no seu banco.</p>
+                        <div className="w-full p-3 bg-gray-900 rounded-lg">
+                            <p className="text-xs text-gray-300 break-words select-all">
+                                {paymentData.pix_qr_code_text}
+                            </p>
                         </div>
-                        {copySuccess && <p className="text-green-400 text-sm mt-2">{copySuccess}</p>}
-                        <div className="mt-8 flex justify-center items-center gap-3 text-orange-400">
-                            <Loader2 className="animate-spin" />
-                            <span>A aguardar confirmação do pagamento...</span>
-                        </div>
-                        <button onClick={handleCancel} className="w-full mt-6 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"><ArrowLeft size={18} /> Cancelar e Voltar</button>
-                    </>
-                )}
+                        {/* NOVO BOTÃO DE COPIAR, BEM DESTACADO */}
+                        <button 
+                            onClick={handleCopy} 
+                            className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-bold transition-all duration-300 ease-in-out ${copySuccess ? 'bg-green-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}
+                        >
+                            {copySuccess ? (
+                                <> <CheckCircle2 size={18} /> Código Copiado! </>
+                            ) : (
+                                <> <Copy size={18} /> Copiar Código PIX </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mt-8 border-t border-gray-700 pt-6">
+                    <div className="flex justify-center items-center gap-3 text-orange-400">
+                        <Loader2 className="animate-spin" />
+                        <span>A aguardar confirmação do pagamento...</span>
+                    </div>
+                    <button 
+                        onClick={handleCancel} 
+                        className="w-full mt-4 bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    >
+                        Cancelar e Voltar
+                    </button>
+                </div>
             </div>
         </div>
     );
