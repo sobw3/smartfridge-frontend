@@ -1,3 +1,4 @@
+
 import React from 'react';
 // Ícones adicionados: History para o novo histórico, FileText para faturas
 import { Mail, Lock, User, Clock, Smartphone, Home, Building, Check, Search, ShoppingCart, Menu, X, ArrowLeft, ArrowRight, Trash2, Plus, Minus, BarChart, Users as UsersIcon, Package, LogOut, CreditCard, QrCode, Shield, Loader2, Edit, PlusCircle, Building2, Copy, ChevronDown, ChevronUp, DollarSign, KeyRound, Calendar, Wallet, Flame, AlertTriangle, Save, Filter, ArrowDownToLine, ArrowRightLeft, Ticket, Bell, PiggyBank, History, Phone, Refrigerator, CheckCircle2, Info, Ban, FileText, Instagram, MessageSquare, PieChart, LayoutDashboard } from 'lucide-react';
@@ -859,7 +860,7 @@ const CartPage = ({ cart, setCart, setPage, user, setPaymentData, setPaymentMeth
     const clearCart = () => { setCart([]); };
     const cartTotal = cart.reduce((total, item) => total + (parseFloat(item.sale_price) * item.quantity), 0);
 
-     const handleCreatePixPayment = async () => {
+    const handleCreatePixPayment = async () => {
         setIsLoading(true); 
         setError('');
         try {
