@@ -1227,11 +1227,9 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
     
-    // Usamos 'useRef' para manter uma referência estável ao container do formulário
     const brickContainerRef = React.useRef(null);
     const depositAmount = parseFloat(depositData?.amount || 0);
 
-    // Efeito para carregar o script do Mercado Pago
     React.useEffect(() => {
         if (window.MercadoPago) {
             setIsMpReady(true);
@@ -1244,9 +1242,8 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
         document.body.appendChild(script);
     }, []);
 
-    // Efeito para criar e destruir o formulário do Mercado Pago
     React.useEffect(() => {
-        let brickInstance; // Variável para guardar a instância do formulário
+        let brickInstance; 
 
         if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
             const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
@@ -1254,7 +1251,6 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
             
             const renderBrick = async () => {
                 try {
-                    // Garante que o container esteja limpo antes de renderizar
                     if (brickContainerRef.current) {
                         brickContainerRef.current.innerHTML = '';
                     }
@@ -1279,7 +1275,7 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                                     if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
                                     
                                     onPaymentSuccess();
-                                    setPage('depositSuccess'); // Leva para a página de sucesso de depósito
+                                    setPage('depositSuccess');
                                 } catch (err) {
                                     setError(err.message);
                                 } finally {
@@ -1296,13 +1292,11 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
             renderBrick();
         }
 
-        // Função de "limpeza": Destrói o formulário quando o utilizador sai da página
         return () => {
             if (brickInstance) {
                 brickInstance.unmount();
             }
         };
-    // A lista de dependências foi simplificada para ser mais estável
     }, [isMpReady, depositAmount, user.email, onPaymentSuccess, setPage]);
 
     return (
@@ -1318,7 +1312,6 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                     <p className="text-center text-lg text-gray-300 mb-4">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
                     {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
                     {error && <p className="text-red-400 text-center mt-4">{error}</p>}
-                    {/* A div agora usa a referência que criámos */}
                     <div id="cardDepositBrick_container" ref={brickContainerRef}></div>
                     {isLoading && <div className="flex justify-center mt-4"><Loader2 className="animate-spin" /><span>A processar...</span></div>}
                 </div>
