@@ -1220,18 +1220,18 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
     );
 };
 
+// Em App.js, substitua o seu CardDepositPage por este:
+
 const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
     
-    // Usamos 'useRef' para manter uma referência estável ao brick e evitar re-renderizações
+    // Usamos 'useRef' para manter uma referência estável ao container do formulário
     const brickContainerRef = React.useRef(null);
-    const brickInstanceRef = React.useRef(null);
-
     const depositAmount = parseFloat(depositData?.amount || 0);
 
-    // Efeito para carregar o script do Mercado Pago (isto já estava correto)
+    // Efeito para carregar o script do Mercado Pago
     React.useEffect(() => {
         if (window.MercadoPago) {
             setIsMpReady(true);
@@ -1246,16 +1246,20 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
 
     // Efeito para criar e destruir o formulário do Mercado Pago
     React.useEffect(() => {
-        if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
-            // Previne a recriação do brick se ele já existir
-            if (brickInstanceRef.current) return;
+        let brickInstance; // Variável para guardar a instância do formulário
 
+        if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
             const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
             const bricksBuilder = mp.bricks();
             
             const renderBrick = async () => {
                 try {
-                    const brick = await bricksBuilder.create("cardPayment", brickContainerRef.current.id, {
+                    // Garante que o container esteja limpo antes de renderizar
+                    if (brickContainerRef.current) {
+                        brickContainerRef.current.innerHTML = '';
+                    }
+                    
+                    brickInstance = await bricksBuilder.create("cardPayment", brickContainerRef.current.id, {
                         initialization: {
                             amount: depositAmount,
                             payer: { email: user.email },
@@ -1273,8 +1277,9 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                                     });
                                     const data = await response.json();
                                     if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
+                                    
                                     onPaymentSuccess();
-                                    setPage('wallet');
+                                    setPage('depositSuccess'); // Leva para a página de sucesso de depósito
                                 } catch (err) {
                                     setError(err.message);
                                 } finally {
@@ -1284,7 +1289,6 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                             onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
                         },
                     });
-                    brickInstanceRef.current = brick; // Guarda a instância do brick
                 } catch(e) {
                     setError("Erro ao inicializar o formulário de depósito.");
                 }
@@ -1294,13 +1298,12 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
 
         // Função de "limpeza": Destrói o formulário quando o utilizador sai da página
         return () => {
-            if (brickInstanceRef.current) {
-                brickInstanceRef.current.unmount();
-                brickInstanceRef.current = null;
+            if (brickInstance) {
+                brickInstance.unmount();
             }
         };
-    // A lista de dependências foi cuidadosamente escolhida para evitar o loop
-    }, [isMpReady, depositAmount, user, onPaymentSuccess, setPage]);
+    // A lista de dependências foi simplificada para ser mais estável
+    }, [isMpReady, depositAmount, user.email, onPaymentSuccess, setPage]);
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -3689,6 +3692,11 @@ export default function App() {
         }
     }, []);
 
+    const handleDepositSuccess = React.useCallback(() => {
+    showToast('Depósito realizado com sucesso!');
+    updateUserBalance();
+}, [updateUserBalance]); // 'showToast' deve ser estável também
+
     // --- LÓGICA DE LOGIN E SESSÃO REESCRITA ---
 
     const handleLogout = () => {
@@ -3824,7 +3832,7 @@ export default function App() {
                             case 'forgot-password': return <ForgotPasswordPage setPage={setPage} />;
                             case 'admin': return <AdminDashboard onLogout={handleLogout} />;
                             case 'wallet': return user ? <WalletPage user={user} setPage={setPage} setPaymentData={setPaymentData} setDepositData={setDepositData} setPaymentMethod={setPaymentMethod} updateUserBalance={updateUserBalance} showToast={showToast} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
-                            case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={() => { showToast('Depósito realizado com sucesso!'); updateUserBalance(); }} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
+                           case 'card-deposit': return user ? <CardDepositPage user={user} depositData={depositData} setPage={setPage} onPaymentSuccess={handleDepositSuccess} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'my-tickets': return user ? <MyTicketsPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'credit': return user ? <CreditPage user={user} setPage={setPage} setPaymentData={setPaymentData} setPaymentMethod={setPaymentMethod} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
                             case 'depositSuccess': return user ? <DepositSuccessPage setPage={setPage} /> : <LoginPage onLogin={handleLogin} onAdminLogin={handleAdminLogin} onSwitchToRegister={() => setPage('register')} setPage={setPage} />;
