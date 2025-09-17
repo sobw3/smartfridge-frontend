@@ -1228,8 +1228,10 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
+    
+    // Novo estado para guardar a bandeira do cartão
+    const [cardBrand, setCardBrand] = React.useState(null);
 
-    // Estados para os campos do formulário
     const [cardData, setCardData] = React.useState({
         cardNumber: '',
         cardholderName: user?.name || '',
@@ -1253,27 +1255,35 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
         document.body.appendChild(script);
     }, []);
 
+    // Nova função para detetar a bandeira do cartão
+    const getCardBrand = (number) => {
+        const cleanNumber = number.replace(/\s/g, '');
+        if (cleanNumber.startsWith('4')) return 'visa';
+        if (/^5[1-5]/.test(cleanNumber)) return 'mastercard';
+        if (/^3[47]/.test(cleanNumber)) return 'amex';
+        if (/^(50|62|63)/.test(cleanNumber)) return 'elo'; // Simplificado para os prefixos mais comuns
+        return null;
+    };
+
     // Funções de máscara para os inputs
     const handleCardNumberChange = (e) => {
         const value = e.target.value.replace(/\D/g, '').substring(0, 16);
         const formatted = value.replace(/(.{4})/g, '$1 ').trim();
         setCardData(prev => ({ ...prev, cardNumber: formatted }));
+        // Atualiza a bandeira do cartão em tempo real
+        setCardBrand(getCardBrand(value));
     };
     const handleExpiryChange = (e) => {
         const value = e.target.value.replace(/\D/g, '').substring(0, 4);
         const formatted = value.replace(/(\d{2})(\d)/, '$1/$2');
         setCardData(prev => ({ ...prev, expirationDate: formatted }));
     };
-    const handleCpfChange = (e) => {
-        setCardData(prev => ({ ...prev, cardholderCpf: formatCPF(e.target.value) }));
-    };
+    const handleCpfChange = (e) => { setCardData(prev => ({ ...prev, cardholderCpf: formatCPF(e.target.value) })); };
     const handleSecurityCodeChange = (e) => {
         const value = e.target.value.replace(/\D/g, '').substring(0, 4);
         setCardData(prev => ({ ...prev, securityCode: value }));
     };
-    const handleNameChange = (e) => {
-        setCardData(prev => ({ ...prev, cardholderName: e.target.value }));
-    };
+    const handleNameChange = (e) => { setCardData(prev => ({ ...prev, cardholderName: e.target.value })); };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -1286,11 +1296,10 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
 
         try {
             const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-            
             const [expMonth, expYear] = cardData.expirationDate.split('/');
             
-            // 1. Cria o token seguro com os dados do nosso formulário
-            const cardToken = await mp.cardForm.createCardToken({
+            // CORREÇÃO: Usando mp.createCardToken em vez de mp.cardForm.createCardToken
+            const cardToken = await mp.createCardToken({
                 cardNumber: cardData.cardNumber.replace(/\s/g, ''),
                 cardholderName: cardData.cardholderName,
                 cardExpirationMonth: expMonth,
@@ -1304,7 +1313,6 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 throw new Error("Não foi possível validar o seu cartão. Verifique os dados.");
             }
             
-            // 2. Envia o TOKEN (não os dados do cartão) para o nosso backend
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_URL}/api/wallet/deposit-card`, {
                 method: 'POST',
@@ -1341,17 +1349,18 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 <div className="max-w-md mx-auto">
                     <p className="text-center text-lg text-gray-300 mb-6">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
                     
-                    {/* Componente Visual do Cartão */}
+                    {/* Componente Visual do Cartão com logo dinâmico */}
                     <div className="bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-xl shadow-lg mb-6 relative aspect-video flex flex-col justify-between">
                         <div>
                             <div className="flex justify-between items-center">
-                                <p className="font-bold text-white">SmartFridge</p>
-                                <p className="font-mono text-lg font-semibold text-gray-300">VISA</p>
+                                <div className="w-10 h-8 bg-yellow-400 rounded-md"></div>
+                                <div className="h-full">
+                                    <CardBrandLogo brand={cardBrand} />
+                                </div>
                             </div>
-                            <div className="w-10 h-8 bg-yellow-400 rounded-md mt-4"></div>
                         </div>
                         <div>
-                            <p className="font-mono text-xl tracking-widest text-gray-200">{cardData.cardNumber || '**** **** **** ****'}</p>
+                            <p className="font-mono text-xl md:text-2xl tracking-widest text-gray-200">{cardData.cardNumber || '**** **** **** ****'}</p>
                             <div className="flex justify-between mt-2 text-xs">
                                 <p className="uppercase text-gray-400">{cardData.cardholderName || 'SEU NOME AQUI'}</p>
                                 <p className="text-gray-400">{cardData.expirationDate || 'MM/AA'}</p>
@@ -1359,7 +1368,6 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                         </div>
                     </div>
 
-                    {/* Formulário */}
                     <form onSubmit={handleSubmit}>
                         <div className="bg-gray-800 p-6 rounded-lg flex flex-col gap-4">
                             <div className="relative">
@@ -1401,6 +1409,35 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
             </main>
         </div>
     );
+};
+
+const CardBrandLogo = ({ brand }) => {
+    const logos = {
+        visa: (
+            <svg viewBox="0 0 38 12" height="24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M33.636 11.353h-3.44L27.18 0h3.843l3.613 11.353zM23.012 0L19.45 11.353h-3.23L12.657 0h3.843l1.81 7.424 1.9-7.424h2.8zM12.27 1.81L9.94 11.353H6.26L8.59 1.81h3.68zM4.68 11.353l1.81-9.544c.15-.65-.11-1.05-.81-1.21L5.64 0H.6L.51 1.05c.9.15 1.44.43 1.29 1.36L.01 11.353h3.843l.827-4.145h.04z" />
+            </svg>
+        ),
+        mastercard: (
+            <svg viewBox="0 0 38 24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="12" fill="#EB001B"/>
+                <circle cx="26" cy="12" r="12" fill="#F79E1B" opacity="0.8"/>
+            </svg>
+        ),
+        amex: (
+            <svg viewBox="0 0 38 24" height="24" fill="#0077CC" xmlns="http://www.w3.org/2000/svg">
+                <rect width="38" height="24" rx="3" />
+                <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">AMEX</text>
+            </svg>
+        ),
+        elo: (
+             <svg viewBox="0 0 38 24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="38" height="24" rx="3" fill="#00A4E0" />
+                <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">elo</text>
+            </svg>
+        ),
+    };
+    return logos[brand] || null;
 };
 
 const PaymentPage = ({ paymentData, setPage, paymentMethod, user, cart, onPaymentSuccess, setPaymentData }) => {
