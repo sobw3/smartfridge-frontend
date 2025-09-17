@@ -1222,14 +1222,25 @@ const CardPaymentPage = ({ user, cart, setPage, onPaymentSuccess, setPaymentData
 
 // Em App.js, substitua o seu CardDepositPage por este:
 
+// Em App.js, substitua o seu CardDepositPage por este:
+
 const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState('');
     const [isMpReady, setIsMpReady] = React.useState(false);
-    
-    const brickContainerRef = React.useRef(null);
+
+    // Estados para os campos do formulário
+    const [cardData, setCardData] = React.useState({
+        cardNumber: '',
+        cardholderName: user?.name || '',
+        expirationDate: '',
+        securityCode: '',
+        cardholderCpf: user?.cpf || ''
+    });
+
     const depositAmount = parseFloat(depositData?.amount || 0);
 
+    // Carrega o script do Mercado Pago
     React.useEffect(() => {
         if (window.MercadoPago) {
             setIsMpReady(true);
@@ -1242,62 +1253,81 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
         document.body.appendChild(script);
     }, []);
 
-    React.useEffect(() => {
-        let brickInstance; 
+    // Funções de máscara para os inputs
+    const handleCardNumberChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '').substring(0, 16);
+        const formatted = value.replace(/(.{4})/g, '$1 ').trim();
+        setCardData(prev => ({ ...prev, cardNumber: formatted }));
+    };
+    const handleExpiryChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        const formatted = value.replace(/(\d{2})(\d)/, '$1/$2');
+        setCardData(prev => ({ ...prev, expirationDate: formatted }));
+    };
+    const handleCpfChange = (e) => {
+        setCardData(prev => ({ ...prev, cardholderCpf: formatCPF(e.target.value) }));
+    };
+    const handleSecurityCodeChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        setCardData(prev => ({ ...prev, securityCode: value }));
+    };
+    const handleNameChange = (e) => {
+        setCardData(prev => ({ ...prev, cardholderName: e.target.value }));
+    };
 
-        if (isMpReady && depositAmount > 0 && brickContainerRef.current) {
-            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
-            const bricksBuilder = mp.bricks();
-            
-            const renderBrick = async () => {
-                try {
-                    if (brickContainerRef.current) {
-                        brickContainerRef.current.innerHTML = '';
-                    }
-                    
-                    brickInstance = await bricksBuilder.create("cardPayment", brickContainerRef.current.id, {
-                        initialization: {
-                            amount: depositAmount,
-                            payer: { email: user.email },
-                        },
-                        customization: { visual: { style: { theme: 'dark' } } },
-                        callbacks: {
-                            onSubmit: async (cardFormData) => {
-                                setIsLoading(true); setError('');
-                                const token = localStorage.getItem('token');
-                                try {
-                                    const response = await fetch(`${API_URL}/api/wallet/deposit-card`, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                        body: JSON.stringify({ ...cardFormData, amount: depositAmount, user: user })
-                                    });
-                                    const data = await response.json();
-                                    if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
-                                    
-                                    onPaymentSuccess();
-                                    setPage('depositSuccess');
-                                } catch (err) {
-                                    setError(err.message);
-                                } finally {
-                                    setIsLoading(false);
-                                }
-                            },
-                            onError: (err) => setError('Ocorreu um erro ao processar os dados do cartão.'),
-                        },
-                    });
-                } catch(e) {
-                    setError("Erro ao inicializar o formulário de depósito.");
-                }
-            };
-            renderBrick();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!isMpReady) {
+            setError('O serviço de pagamento ainda não está pronto. Tente novamente em alguns segundos.');
+            return;
         }
+        setIsLoading(true);
+        setError('');
 
-        return () => {
-            if (brickInstance) {
-                brickInstance.unmount();
+        try {
+            const mp = new window.MercadoPago(MERCADOPAGO_PUBLIC_KEY);
+            
+            const [expMonth, expYear] = cardData.expirationDate.split('/');
+            
+            // 1. Cria o token seguro com os dados do nosso formulário
+            const cardToken = await mp.cardForm.createCardToken({
+                cardNumber: cardData.cardNumber.replace(/\s/g, ''),
+                cardholderName: cardData.cardholderName,
+                cardExpirationMonth: expMonth,
+                cardExpirationYear: `20${expYear}`,
+                securityCode: cardData.securityCode,
+                identificationType: 'CPF',
+                identificationNumber: cardData.cardholderCpf.replace(/\D/g, '')
+            });
+
+            if (!cardToken || !cardToken.id) {
+                throw new Error("Não foi possível validar o seu cartão. Verifique os dados.");
             }
-        };
-    }, [isMpReady, depositAmount, user.email, onPaymentSuccess, setPage]);
+            
+            // 2. Envia o TOKEN (não os dados do cartão) para o nosso backend
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/api/wallet/deposit-card`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ 
+                    token: cardToken.id, 
+                    amount: depositAmount,
+                    cardholderName: cardData.cardholderName,
+                    cardholderCpf: cardData.cardholderCpf
+                })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Depósito recusado.');
+            
+            onPaymentSuccess();
+            setPage('depositSuccess');
+
+        } catch (err) {
+            setError(err.message || "Ocorreu um erro. Verifique os dados do cartão e tente novamente.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
@@ -1308,12 +1338,65 @@ const CardDepositPage = ({ user, depositData, setPage, onPaymentSuccess }) => {
                 </div>
             </header>
             <main className="container mx-auto p-4 md:p-8">
-                <div className="max-w-md mx-auto bg-gray-800 p-8 rounded-lg">
-                    <p className="text-center text-lg text-gray-300 mb-4">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
-                    {!isMpReady && !error && <div className="flex justify-center items-center flex-col gap-4"><Loader2 className="animate-spin" /><span>A carregar formulário...</span></div>}
-                    {error && <p className="text-red-400 text-center mt-4">{error}</p>}
-                    <div id="cardDepositBrick_container" ref={brickContainerRef}></div>
-                    {isLoading && <div className="flex justify-center mt-4"><Loader2 className="animate-spin" /><span>A processar...</span></div>}
+                <div className="max-w-md mx-auto">
+                    <p className="text-center text-lg text-gray-300 mb-6">Valor do depósito: <span className="font-bold text-orange-400">R$ {depositAmount.toFixed(2).replace('.', ',')}</span></p>
+                    
+                    {/* Componente Visual do Cartão */}
+                    <div className="bg-gradient-to-br from-gray-700 to-gray-800 p-6 rounded-xl shadow-lg mb-6 relative aspect-video flex flex-col justify-between">
+                        <div>
+                            <div className="flex justify-between items-center">
+                                <p className="font-bold text-white">SmartFridge</p>
+                                <p className="font-mono text-lg font-semibold text-gray-300">VISA</p>
+                            </div>
+                            <div className="w-10 h-8 bg-yellow-400 rounded-md mt-4"></div>
+                        </div>
+                        <div>
+                            <p className="font-mono text-xl tracking-widest text-gray-200">{cardData.cardNumber || '**** **** **** ****'}</p>
+                            <div className="flex justify-between mt-2 text-xs">
+                                <p className="uppercase text-gray-400">{cardData.cardholderName || 'SEU NOME AQUI'}</p>
+                                <p className="text-gray-400">{cardData.expirationDate || 'MM/AA'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Formulário */}
+                    <form onSubmit={handleSubmit}>
+                        <div className="bg-gray-800 p-6 rounded-lg flex flex-col gap-4">
+                            <div className="relative">
+                                <label className="text-sm text-gray-400">Número do Cartão</label>
+                                <CreditCard className="absolute left-3 bottom-3 text-gray-500" size={20} />
+                                <input type="text" value={cardData.cardNumber} onChange={handleCardNumberChange} placeholder="0000 0000 0000 0000" className="w-full bg-gray-700 p-3 pl-12 rounded-md mt-1" required />
+                            </div>
+                            <div>
+                                <label className="text-sm text-gray-400">Nome no Cartão</label>
+                                <input type="text" value={cardData.cardholderName} onChange={handleNameChange} placeholder="Como está escrito no cartão" className="w-full bg-gray-700 p-3 rounded-md mt-1" required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm text-gray-400">Validade</label>
+                                    <div className="relative">
+                                        <Calendar className="absolute left-3 bottom-3 text-gray-500" size={20} />
+                                        <input type="text" value={cardData.expirationDate} onChange={handleExpiryChange} placeholder="MM/AA" className="w-full bg-gray-700 p-3 pl-12 rounded-md mt-1" required />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm text-gray-400">CVV</label>
+                                     <div className="relative">
+                                        <KeyRound className="absolute left-3 bottom-3 text-gray-500" size={20} />
+                                        <input type="text" value={cardData.securityCode} onChange={handleSecurityCodeChange} placeholder="123" className="w-full bg-gray-700 p-3 pl-12 rounded-md mt-1" required />
+                                    </div>
+                                </div>
+                            </div>
+                             <div>
+                                <label className="text-sm text-gray-400">CPF do Titular</label>
+                                <input type="text" value={cardData.cardholderCpf} onChange={handleCpfChange} placeholder="000.000.000-00" className="w-full bg-gray-700 p-3 rounded-md mt-1" required />
+                            </div>
+                        </div>
+                        {error && <p className="text-red-400 text-center mt-4 text-sm">{error}</p>}
+                        <button type="submit" disabled={isLoading} className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-gray-500">
+                            {isLoading ? <Loader2 className="animate-spin" /> : `Depositar R$ ${depositAmount.toFixed(2).replace('.', ',')}`}
+                        </button>
+                    </form>
                 </div>
             </main>
         </div>
