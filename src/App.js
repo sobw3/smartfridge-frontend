@@ -1455,6 +1455,7 @@ const PaymentPage = ({ paymentData, setPage, paymentMethod, user, cart, onPaymen
 // Em App.js, substitua o seu PostPaymentStatusPage por este:
 
 const PostPaymentStatusPage = ({ user, setPage }) => {
+    // Controla o estágio visual da página: 'processing' ou 'success'
     const [stage, setStage] = React.useState('processing');
     const propsRef = React.useRef({ user, setPage });
 
@@ -1466,88 +1467,89 @@ const PostPaymentStatusPage = ({ user, setPage }) => {
         const UNLOCK_DELAY = 11000;
         const REDIRECT_DELAY = 8000;
 
+        // 1. Toca a primeira voz, que já está a funcionar bem
         speak("Pagamento aprovado. A sua porta será destravada em instantes.");
 
+        // 2. Agenda a mudança para o estado de sucesso
         const unlockTimeout = setTimeout(() => {
             setStage('success');
-            const latestUser = propsRef.current.user;
-            const firstName = latestUser?.name ? latestUser.name.split(' ')[0] : 'Cliente';
-            const textToSpeak = `${firstName}, porta destravada! Pode retirar os seus produtos. Volte sempre!`;
+            // 3. Toca a segunda voz, agora simplificada
+            const textToSpeak = "Prezado cliente, porta destravada! Pode retirar os seus produtos. Volte sempre!";
             speak(textToSpeak);
         }, UNLOCK_DELAY);
 
+        // 4. Agenda o redirecionamento final para a home page
         const redirectTimeout = setTimeout(() => {
             propsRef.current.setPage('home');
         }, UNLOCK_DELAY + REDIRECT_DELAY);
 
+        // Função de limpeza que cancela tudo
         return () => {
             clearTimeout(unlockTimeout);
             clearTimeout(redirectTimeout);
             window.speechSynthesis.cancel();
         };
-    }, []);
+    }, []); // Array vazio garante que a lógica só corre UMA VEZ.
 
-    // --- Estilos para as Animações Finais ---
+    // --- Estilos para as novas animações ---
     const keyframes = `
-        @keyframes draw-path { 100% { stroke-dashoffset: 0; } }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes draw-check { 100% { stroke-dashoffset: 0; } }
         @keyframes fade-in-scale { 
-            0% { opacity: 0; transform: scale(0.8); } 
+            0% { opacity: 0; transform: scale(0.7); } 
             100% { opacity: 1; transform: scale(1); } 
+        }
+        @keyframes indeterminate-progress {
+            0% { left: -50%; width: 50%; }
+            100% { left: 100%; width: 50%; }
         }
     `;
 
     return (
         <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
             <style>{keyframes}</style>
-            <div className="w-full max-w-sm bg-gray-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-full max-w-sm bg-gray-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center min-h-[420px] overflow-hidden relative">
                 
-                <div className="mx-auto mb-8 h-32 w-32 flex items-center justify-center">
-                    {stage === 'processing' ? (
-                        <div className="relative h-32 w-32" style={{ animation: `fade-in-scale 0.4s ease-out forwards` }}>
-                            <div className="absolute inset-0 border-4 border-orange-500/30 rounded-full"></div>
-                            <div
-                                className="absolute inset-0 border-4 border-orange-500 rounded-full border-t-transparent"
-                                style={{ animation: 'spin 1.5s linear infinite' }}
-                            ></div>
-                            <Refrigerator size={56} className="text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
-                        </div>
-                    ) : (
-                        // ***** ANIMAÇÃO DE SUCESSO FINAL *****
-                        <div className="w-32 h-32 flex items-center justify-center" style={{ animation: `fade-in-scale 0.4s ease-out forwards` }}>
-                            <svg className="w-full h-full" viewBox="0 0 52 52">
-                                <circle className="transform -rotate-90 origin-center" cx="26" cy="26" r="25" fill="none" strokeWidth="4" stroke="#22c55e"
-                                    style={{
-                                        strokeDasharray: 166,
-                                        strokeDashoffset: 166,
-                                        animation: `draw-path 0.8s ease-out forwards`
-                                    }}/>
-                                <path d="M14 27l5.917 4.917L38 18" fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="stroke-current text-white"
-                                    style={{
-                                        strokeDasharray: 48,
-                                        strokeDashoffset: 48,
-                                        animation: `draw-path 0.5s ease-out 0.6s forwards`
-                                    }}/>
-                            </svg>
-                        </div>
-                    )}
+                {/* ETAPA 1: PROCESSAMENTO */}
+                <div className={`absolute transition-all duration-500 ease-in-out ${stage === 'processing' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+                    <div className="flex flex-col items-center justify-center">
+                        <Refrigerator size={64} className="text-orange-400 mb-8"/>
+                        <h1 className="text-3xl font-bold">Pagamento Aprovado!</h1>
+                        <p className="text-gray-400 mt-3 text-base">Aguarde, a sua SmartFridge será destravada...</p>
+                    </div>
                 </div>
 
-                <div className="relative h-24 w-full">
-                     <div className={`absolute w-full left-0 top-0 transition-all duration-500 ${stage === 'processing' ? 'opacity-100' : 'opacity-0 -translate-y-3'}`}>
-                        <h1 className="text-3xl font-bold">Pagamento Aprovado!</h1>
-                        <p className="text-gray-400 mt-2 text-base">Aguarde, a sua SmartFridge será destravada...</p>
-                     </div>
-                     <div className={`absolute w-full left-0 top-0 transition-all duration-500 ${stage === 'success' ? 'opacity-100' : 'opacity-0 translate-y-3'}`}>
-                        <h1 className="text-3xl font-bold text-green-400">Porta Destravada!</h1>
-                        <p className="text-gray-400 mt-2 text-base">Pode retirar os seus produtos. Bom apetite!</p>
-                     </div>
+                {/* ETAPA 2: SUCESSO */}
+                <div className={`absolute transition-all duration-500 ease-in-out ${stage === 'success' ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+                    <div className="flex flex-col items-center justify-center">
+                        {/* ANIMAÇÃO DE 'CHECK' GRANDE E SEM CÍRCULO */}
+                        <svg className="w-32 h-32" viewBox="0 0 52 52" style={{ animation: `fade-in-scale 0.5s ease-out forwards` }}>
+                            <path d="M14 27l5.917 4.917L38 18"
+                                fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"
+                                className="stroke-current text-green-500"
+                                style={{
+                                    strokeDasharray: 48, strokeDashoffset: 48,
+                                    animation: `draw-check 0.6s ease-out 0.3s forwards`
+                                }}/>
+                        </svg>
+                        <h1 className="text-3xl font-bold text-green-400 mt-4">Porta Destravada!</h1>
+                        <p className="text-gray-400 mt-3 text-base">Pode retirar os seus produtos. Bom apetite!</p>
+                    </div>
+                </div>
+                
+                {/* BARRA DE PROGRESSO NA PARTE INFERIOR */}
+                <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gray-700">
+                    {stage === 'processing' ? (
+                        <div className="relative w-full h-full overflow-hidden">
+                            <div className="absolute h-full bg-orange-500" style={{ animation: 'indeterminate-progress 2s ease-in-out infinite' }}></div>
+                        </div>
+                    ) : (
+                        <div className="w-full h-full bg-green-500"></div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
-
 
 const EnjoyPage = ({ setPage, user }) => {
     
