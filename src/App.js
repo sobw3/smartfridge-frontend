@@ -1452,70 +1452,101 @@ const PaymentPage = ({ paymentData, setPage, paymentMethod, user, cart, onPaymen
     }
 };
 
+// Em App.js, substitua o seu PostPaymentStatusPage por este:
+
 const PostPaymentStatusPage = ({ user, setPage }) => {
-    // Novo estado para controlar o que é mostrado: 'aguardando' ou 'destravado'
-    const [status, setStatus] = React.useState('awaiting_unlock');
+    const [stage, setStage] = React.useState('processing');
+    const propsRef = React.useRef({ user, setPage });
 
     React.useEffect(() => {
-        // Efeito que roda uma única vez quando a página aparece
-        
-        // 1. Toca a primeira voz
-        setTimeout(() => {
-            speak("Pagamento aprovado, aguarde a porta destravar.");
-        }, 500); // Pequeno atraso para a transição de tela
+        propsRef.current = { user, setPage };
+    }, [user, setPage]);
 
-        // 2. Agenda a mudança de status e a segunda voz para 5 segundos depois
+    React.useEffect(() => {
+        const UNLOCK_DELAY = 11000;
+        const REDIRECT_DELAY = 8000;
+
+        speak("Pagamento aprovado. A sua porta será destravada em instantes.");
+
         const unlockTimeout = setTimeout(() => {
-            setStatus('unlocked'); // Muda o que é mostrado na tela
-            
-            const firstName = user?.name ? user.name.split(' ')[0] : 'Cliente';
-            const textToSpeak = `${firstName}, porta destravada! Abra a porta e retire seus produtos. Volte sempre!`;
+            setStage('success');
+            const latestUser = propsRef.current.user;
+            const firstName = latestUser?.name ? latestUser.name.split(' ')[0] : 'Cliente';
+            const textToSpeak = `${firstName}, porta destravada! Pode retirar os seus produtos. Volte sempre!`;
             speak(textToSpeak);
+        }, UNLOCK_DELAY);
 
-        }, 11000); // 5 segundos até destravar
-
-        // 3. Agenda o redirecionamento para a home page 8 segundos depois da segunda voz
         const redirectTimeout = setTimeout(() => {
-            setPage('home');
-        }, 8000 + 11000);
+            propsRef.current.setPage('home');
+        }, UNLOCK_DELAY + REDIRECT_DELAY);
 
-
-        // Limpa tudo se o utilizador sair da página
         return () => {
             clearTimeout(unlockTimeout);
             clearTimeout(redirectTimeout);
             window.speechSynthesis.cancel();
         };
-    }, [user, setPage]); // Dependências do efeito
+    }, []);
 
-    // Renderiza uma coisa ou outra dependendo do estado
-    if (status === 'awaiting_unlock') {
-        return (
-            <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
-                <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
-                    <div className="relative w-32 h-32 mx-auto mb-6">
-                        <Refrigerator size={80} className="text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                        <div className="absolute inset-0 border-4 border-orange-400 rounded-full animate-ping"></div>
-                    </div>
-                    <h1 className="text-3xl font-bold mb-2">Pagamento Aprovado!</h1>
-                    <p className="text-gray-300 mb-6">A sua SmartFridge será destravada em instantes. Aproxime-se para abrir a porta.</p>
-                    <Loader2 size={48} className="text-orange-400 mx-auto animate-spin" />
-                </div>
-            </div>
-        );
-    }
+    // --- Estilos para as Animações Finais ---
+    const keyframes = `
+        @keyframes draw-path { 100% { stroke-dashoffset: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fade-in-scale { 
+            0% { opacity: 0; transform: scale(0.8); } 
+            100% { opacity: 1; transform: scale(1); } 
+        }
+    `;
 
-    return ( // status === 'unlocked'
+    return (
         <div className="min-h-screen bg-gray-900 text-white flex flex-col justify-center items-center p-4 text-center">
-            <div className="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl">
-                <Check size={80} className="text-green-500 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold mb-2">Porta Destravada!</h1>
-                <p className="text-gray-300 mb-6">Retire os seus produtos e feche a porta. Bom apetite!</p>
+            <style>{keyframes}</style>
+            <div className="w-full max-w-sm bg-gray-800 p-8 rounded-2xl shadow-2xl flex flex-col items-center justify-center min-h-[400px]">
+                
+                <div className="mx-auto mb-8 h-32 w-32 flex items-center justify-center">
+                    {stage === 'processing' ? (
+                        <div className="relative h-32 w-32" style={{ animation: `fade-in-scale 0.4s ease-out forwards` }}>
+                            <div className="absolute inset-0 border-4 border-orange-500/30 rounded-full"></div>
+                            <div
+                                className="absolute inset-0 border-4 border-orange-500 rounded-full border-t-transparent"
+                                style={{ animation: 'spin 1.5s linear infinite' }}
+                            ></div>
+                            <Refrigerator size={56} className="text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+                        </div>
+                    ) : (
+                        // ***** ANIMAÇÃO DE SUCESSO FINAL *****
+                        <div className="w-32 h-32 flex items-center justify-center" style={{ animation: `fade-in-scale 0.4s ease-out forwards` }}>
+                            <svg className="w-full h-full" viewBox="0 0 52 52">
+                                <circle className="transform -rotate-90 origin-center" cx="26" cy="26" r="25" fill="none" strokeWidth="4" stroke="#22c55e"
+                                    style={{
+                                        strokeDasharray: 166,
+                                        strokeDashoffset: 166,
+                                        animation: `draw-path 0.8s ease-out forwards`
+                                    }}/>
+                                <path d="M14 27l5.917 4.917L38 18" fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="stroke-current text-white"
+                                    style={{
+                                        strokeDasharray: 48,
+                                        strokeDashoffset: 48,
+                                        animation: `draw-path 0.5s ease-out 0.6s forwards`
+                                    }}/>
+                            </svg>
+                        </div>
+                    )}
+                </div>
+
+                <div className="relative h-24 w-full">
+                     <div className={`absolute w-full left-0 top-0 transition-all duration-500 ${stage === 'processing' ? 'opacity-100' : 'opacity-0 -translate-y-3'}`}>
+                        <h1 className="text-3xl font-bold">Pagamento Aprovado!</h1>
+                        <p className="text-gray-400 mt-2 text-base">Aguarde, a sua SmartFridge será destravada...</p>
+                     </div>
+                     <div className={`absolute w-full left-0 top-0 transition-all duration-500 ${stage === 'success' ? 'opacity-100' : 'opacity-0 translate-y-3'}`}>
+                        <h1 className="text-3xl font-bold text-green-400">Porta Destravada!</h1>
+                        <p className="text-gray-400 mt-2 text-base">Pode retirar os seus produtos. Bom apetite!</p>
+                     </div>
+                </div>
             </div>
         </div>
     );
 };
-
 
 
 const EnjoyPage = ({ setPage, user }) => {
