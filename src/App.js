@@ -3788,7 +3788,7 @@ const Footer = () => {
                             <Instagram size={20} />
                             <span>Instagram</span>
                         </a>
-                        <a href="https://wa.me/556198203-7442" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
+                        <a href="https://wa.me/5561982037442" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors flex items-center gap-2">
                             <MessageSquare size={20} />
                             <span>Suporte via WhatsApp</span>
                         </a>
