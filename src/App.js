@@ -3922,8 +3922,9 @@ export default function App() {
 
     const handleAdminLogin = () => { setUser({ name: "Admin" }); setPage('admin'); };
     const handleRegister = (token, userData) => { 
-        handleLogin(token, userData);
-    };
+        showToast('Cadastro realizado com sucesso! Faça o login para continuar.');
+    setPage('login');
+};
     const handleAccountUpdate = (updatedUser) => { setUser(prevUser => ({ ...prevUser, ...updatedUser })); };
     const handleCondoChanged = (updatedUser) => { setUser(updatedUser); };
     
