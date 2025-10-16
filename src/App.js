@@ -2682,7 +2682,7 @@ const ProductModal = ({ isOpen, onClose, onSave, product }) => {
         <option value="Bebidas">Bebidas</option>
         <option value="Frios">Frios</option>
         <option value="Doces">Doces</option>
-        <option value="bebida alcoólica(+18)">bebida alcoólica</option>
+        <option value="Bebida alcoólica(+18)">bebida alcoólica</option>
     </select>
 </div>
                 </form>
